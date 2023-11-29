@@ -18,14 +18,6 @@ TalentTreeWindow:SetFrameLevel(1);
 TalentTreeWindow:SetFrameStrata("FULLSCREEN")
 
 
-local Backdrop = {
-    bgFile = "Interface/Tooltips/UI-Tooltip-Background",  -- Arquivo de textura do fundo
-    edgeFile = "Interface/Tooltips/UI-Tooltip-Border",  -- Arquivo de textura da borda
-    tile = true, tileSize = 16, edgeSize = 16, 
-    insets = { left = 4, right = 4, top = 4, bottom = 4 }
-}
-
-
 ClassSpecWindow = CreateFrame("Frame", "ClassSpecWindow", UIParent);
 ClassSpecWindow:SetSize(1000, 800)
 ClassSpecWindow:SetPoint("CENTER", 0, 50) --- LEFT/RIGHT -- --UP/DOWN --
@@ -110,7 +102,7 @@ for i, window in ipairs(windows) do
         SpecTabButton:SetPoint("BOTTOMLEFT", window, "BOTTOMLEFT", -200, -35)
         TalentTabButton:SetPoint("LEFT", SpecTabButton, "RIGHT", 50, 0)
     elseif window == ClassSpecWindow then
-        SpecTabButton:SetPoint("BOTTOMLEFT", window, "BOTTOMLEFT", -200, 0)
+        SpecTabButton:SetPoint("BOTTOMLEFT", window, "BOTTOMLEFT", -200, -35)
         TalentTabButton:SetPoint("LEFT", SpecTabButton, "RIGHT", 50, 0)
     end
 end
@@ -139,7 +131,7 @@ UIParent:SetScript("OnSizeChanged", function(self, width, height)
     AdjustFrameScale(TalentTreeWindow)
 end)
 
--- Ajuste inicial
+
 AdjustFrameScale(TalentTreeWindow)
 AdjustFrameScale(ClassSpecWindow)
 
@@ -150,7 +142,7 @@ Bordertexture:SetPoint("CENTER", 0, -100)
 Bordertexture:SetTexCoord(0, 1, 0, 0.57)
 Bordertexture:SetSize(TalentTreeWindow:GetWidth() * 1.8, TalentTreeWindow:GetHeight() * 1.3)
 
-BorderSpec = ClassSpecWindow:CreateTexture(nil, "BORDER")
+BorderSpec = ClassSpecWindow:CreateTexture(nil, "OVERLAY")
 BorderSpec:SetTexture(CONSTANTS.UI.MAIN_BG_SPEC)
 BorderSpec:SetPoint("CENTER", 0, -100)
 BorderSpec:SetTexCoord(0, 1, 0, 0.57)
@@ -158,13 +150,14 @@ BorderSpec:SetSize(TalentTreeWindow:GetWidth() * 1.8, TalentTreeWindow:GetHeight
 
 BackgroundSpec = ClassSpecWindow:CreateTexture(nil, "BACKGROUND")
 BackgroundSpec:SetTexture(CONSTANTS.UI.BG_SPEC)
-BackgroundSpec:SetPoint("CENTER", 0, -100)
+BackgroundSpec:SetPoint("CENTER", 0, -117)
+BackgroundSpec:SetDrawLayer("BACKGROUND", -1)
 BackgroundSpec:SetTexCoord(0, 1, 0, 0.57)
-BackgroundSpec:SetSize(TalentTreeWindow:GetWidth() * 1.8, TalentTreeWindow:GetHeight() * 1.3)
+BackgroundSpec:SetSize(TalentTreeWindow:GetWidth() * 1.8, TalentTreeWindow:GetHeight() * 1.4)
 
 SpecTitleText = ClassSpecWindow:CreateFontString()
 SpecTitleText:SetFont("Fonts\\FRIZQT__.TTF", 15, "OUTLINE")
-SpecTitleText:SetPoint("TOP", BackgroundSpec, "TOP", -20, -25)
+SpecTitleText:SetPoint("TOP", BackgroundSpec, "TOP", -20, -45)
 SpecTitleText:SetTextColor(1, 1, 0)
 SpecTitleText:SetText("Specializations")
 
@@ -183,18 +176,18 @@ closeButton:SetScript("OnClick", function()
 end)
 
 
-ClassIconTexture = window:CreateTexture(nil, "BORDER")
+ClassIconTexture = window:CreateTexture(nil, "ARTWORK")
 ClassIconTexture:SetTexture(CONSTANTS.UI.MAIN_BG)
-ClassIconTexture:SetSize(64, 64)
-ClassIconTexture:SetDrawLayer("BORDER", -100)
+ClassIconTexture:SetSize(67, 67)
+ClassIconTexture:SetDrawLayer("ARTWORK", 1)
 SetPortraitToTexture(ClassIconTexture, CONSTANTS.classIcon[string.upper(CONSTANTS.CLASS)])		
 
 	    if window == TalentTreeWindow then
         closeButton:SetPoint("TOPRIGHT", window, "TOPRIGHT", 190, 8) 
-		ClassIconTexture:SetPoint("TOPLEFT", window, "TOPLEFT", -239, 9) 
+		ClassIconTexture:SetPoint("TOPLEFT", window, "TOPLEFT", -241, 12) 
     elseif window == ClassSpecWindow then
          closeButton:SetPoint("TOPRIGHT", window, "TOPRIGHT", 190, 8)
-		 ClassIconTexture:SetPoint("TOPLEFT", window, "TOPLEFT", -239, 9)
+		 ClassIconTexture:SetPoint("TOPLEFT", window, "TOPLEFT", -241, 12)
     end
 	
 end
@@ -265,7 +258,7 @@ StaticPopupDialogs["CONFIRM_TALENT_WIPE"] = {
         else
             DEFAULT_CHAT_FRAME:AddMessage("You must be at least level 10 to reset talents.", 1, 0, 0) -- Sends a red error message
         end
-        SelectTab(TalentTree.FORGE_TABS[3]);
+        --SelectTab(TalentTree.FORGE_TABS[3]);
     end,
     timeout = 0,
     whileDead = true,

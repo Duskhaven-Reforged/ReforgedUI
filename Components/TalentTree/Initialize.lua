@@ -9,6 +9,18 @@ function ToggleTalentFrame(openPet)
     end
 end
 
+local function printTable(t, indent)
+    indent = indent or ""
+    for key, value in pairs(t) do
+        if type(value) == "table" then
+            print(indent .. tostring(key) .. ": ")
+            printTable(value, indent .. "  ")
+        else
+            print(indent .. tostring(key) .. ": " .. tostring(value))
+        end
+    end
+end
+
 function InitializeTalentTree()
     InitializeGridForForgeSkills();
     InitializeGridForTalent();
@@ -20,11 +32,12 @@ function InitializeTalentTree()
     SubscribeToForgeTopic(ForgeTopic.TalentTree_LAYOUT, function(msg)
         GetTalentTreeLayout(msg)
     end);
+	
     SubscribeToForgeTopic(ForgeTopic.GET_CHARACTER_SPECS, function(msg)
         GetCharacterSpecs(msg);
     end);
-end
 
+end
 
 
 function GetTalentTreeLayout(msg)
@@ -53,6 +66,7 @@ function GetCharacterSpecs(msg)
             table.insert(TalentTree.FORGE_SPEC_SLOTS, spec)
         end
     end
+						
     if TalentTree.INITIALIZED == false then
         InitializeTalentLeft();
         InitializeForgePoints();
@@ -71,13 +85,15 @@ SubscribeToForgeTopic(ForgeTopic.LEARN_TALENT_ERROR, function(msg)
     print("Talent Learn Error: " .. msg);
 end)
 
+
+local onUpdateFrame = CreateFrame("Frame")
 SubscribeToForgeTopic(ForgeTopic.GET_TALENTS, function(msg)
     if not TalentTree.FORGE_TALENTS then
         TalentTree.FORGE_TALENTS = {};
     end
     local talents = DeserializeMessage(DeserializerDefinitions.GET_TALENTS, msg);
-    for tabId, talent in ipairs(talents) do
 
+    for tabId, talent in ipairs(talents) do
         if talent.Talents then
             for spellId, rank in pairs(talent.Talents) do
                 if not TalentTree.FORGE_TALENTS[talent.TabId] then
@@ -88,14 +104,20 @@ SubscribeToForgeTopic(ForgeTopic.GET_TALENTS, function(msg)
 			
             UpdateTalent(talent.TabId, talent.Talents)
         end
-		
-    if #talents > 0 and talents[1].TabId then
-		TalentTree.FORGE_SELECTED_TAB = talents[1].TabId
-        print("Initialize send TabId", TalentTree.FORGE_SELECTED_TAB)
-        --SelectTab(TalentTree.FORGE_SELECTED_TAB[1])
-    else
-        print("TabId não encontrado em talents[1]")
     end
 
+    if #talents > 0 and talents[1].TabId then
+        onUpdateFrame:SetScript("OnUpdate", function(self, elapsed)
+             if TalentTreeWindow and TalentTreeWindow.TabsLeft and TalentTreeWindow.TabsLeft.Spec and talents[1].TabId and TalentTreeWindow.TabsLeft.Spec[talents[1].TabId] and not oneTime then
+                SelectTab(talents[1].TabId)
+	            TalentTreeWindow.Container:Show()
+	            TalentTreeWindow.GridTalent:Show()
+                self:SetScript("OnUpdate", nil)
+            else
+                return
+            end
+        end)
+    else
     end
 end)
+

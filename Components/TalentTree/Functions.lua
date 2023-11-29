@@ -40,6 +40,32 @@ function FindTabInForgeSpell(tabId)
     end
 end
 
+local function UpdateActivateSpecButton(tab)
+    local button = TalentTreeWindow.TabsLeft.Spec[tab.Id].ActivateSpecBtn
+    local isTabSelected = TalentTreeWindow.TabsLeft.Spec[tab.Id]:GetButtonState() == "PUSHED"
+
+	 
+    local originalNormalTexture = button:GetNormalTexture()
+    local originalPushedTexture = button:GetPushedTexture()
+    local originalHighlightTexture = button:GetHighlightTexture()
+	
+    if isTabSelected then
+        button:SetText("Activated")
+        button:SetNormalFontObject(GameFontHighlightSmall)
+        button:SetNormalTexture(nil) -- Remove a textura normal
+        button:SetPushedTexture(nil) -- Remove a textura de clique
+        button:SetHighlightTexture(nil) -- Remove a textura de destaque
+        button:GetFontString():SetTextColor(0, 1, 0) -- Define a cor do texto para verde
+    else
+        button:SetText("Activate")
+        button:SetNormalFontObject(GameFontNormalSmall)
+        button:SetNormalTexture(originalNormalTexture)
+        button:SetPushedTexture(originalPushedTexture)
+        button:SetHighlightTexture(originalHighlightTexture)
+        button:GetFontString():SetTextColor(1, 1, 1) 
+    end
+end
+
 function FindExistingTab(tabId)
     for _, tab in ipairs(TalentTree.FORGE_TABS) do
         if tonumber(tab.Id) == tonumber(tabId) then
@@ -300,29 +326,26 @@ local function printTable(t, indent)
     end
 end
 
+function findTabIndexById(tabId)
+    for index, tab in ipairs(TalentTree.FORGE_TABS) do
+        if tab.Id == tabId then
+            return index
+        end
+    end
+    return nil
+end
 
+local lastPushedTabId = nil
 function SelectTab(tab)
-    if TalentTree.FORGE_SELECTED_TAB then
-        local previousTabId = TalentTree.FORGE_SELECTED_TAB.Id
-        if TalentTreeWindow.TabsLeft.Spec[previousTabId] then
-            TalentTreeWindow.TabsLeft.Spec[previousTabId]:SetButtonState("NORMAL")
-        end
-    end
-
-    if TalentTree.FORGE_SELECTED_TAB then
-        if TalentTreeWindow.TabsLeft.Spec[TalentTree.FORGE_SELECTED_TAB.Id] then
-            TalentTreeWindow.TabsLeft.Spec[TalentTree.FORGE_SELECTED_TAB.Id]:SetButtonState("NORMAL");
-        end
-    end
-
-	TalentTree.FORGE_SELECTED_TAB = tab;
-    TalentTreeWindow.TabsLeft.Spec[TalentTree.FORGE_SELECTED_TAB.Id]:SetButtonState("PUSHED", 1);
+	TalentTree.FORGE_SELECTED_TAB = tab;	
+					
     if tab.TalentType == CharacterPointType.SKILL_PAGE then
         ShowTypeTalentPoint(CharacterPointType.FORGE_SKILL_TREE, "forge", tab.Id)
         TalentTreeWindow.SpellBook:Show();
     else
         TalentTreeWindow.SpellBook:Hide();
     end
+	
     if tab.TalentType == CharacterPointType.RACIAL_TREE or tab.TalentType == CharacterPointType.TALENT_SKILL_TREE or
         tab.TalentType == CharacterPointType.PRESTIGE_TREE then
         InitializeGridForTalent();
@@ -333,20 +356,60 @@ function SelectTab(tab)
     else
         TalentTreeWindow.GridTalent:Hide();
     end
+	
     local strTalentType = GetStrByCharacterPointType(tab.TalentType);
     if tab.TalentType == CharacterPointType.RACIAL_TREE then
         ShowTypeTalentPoint(CharacterPointType.RACIAL_TREE, strTalentType, tab.Id)
     end
+	
     if tab.TalentType == CharacterPointType.PRESTIGE_TREE then
         ShowTypeTalentPoint(CharacterPointType.PRESTIGE_TREE, strTalentType, tab.Id)
     end
+	
     if tab.TalentType == CharacterPointType.TALENT_SKILL_TREE then
         ShowTypeTalentPoint(CharacterPointType.TALENT_SKILL_TREE, strTalentType, tab.Id)
+    end	
+	
+	    if TalentTree.FORGE_SELECTED_TAB then
+        local previousTabId = TalentTree.FORGE_SELECTED_TAB.Id
+        if TalentTreeWindow.TabsLeft.Spec[previousTabId] then
+            TalentTreeWindow.TabsLeft.Spec[previousTabId]:SetButtonState("NORMAL", 1)
+        end
     end
-    
-	 
-	 TalentTreeWindow.Container.Background:SetTexture(PATH .. "tabBG\\" .. tab.Background)
 
+    if TalentTree.FORGE_SELECTED_TAB then
+        if TalentTreeWindow.TabsLeft.Spec[TalentTree.FORGE_SELECTED_TAB.Id] then
+            TalentTreeWindow.TabsLeft.Spec[TalentTree.FORGE_SELECTED_TAB.Id]:SetButtonState("NORMAL", 1);
+        end
+    end
+
+	
+    if lastPushedTabId and TalentTreeWindow.TabsLeft.Spec[lastPushedTabId] then
+        TalentTreeWindow.TabsLeft.Spec[lastPushedTabId]:SetButtonState("NORMAL", 1)
+	   local tabIndex = findTabIndexById(lastPushedTabId)
+        if tabIndex then
+            local backgroundPath = "Interface\\AddOns\\ForgedWoWCommunication\\UI\\"..TalentTree.FORGE_TABS[tabIndex].Background
+            TalentTreeWindow.Container.Background:SetTexture(backgroundPath)
+        end
+    end
+
+    if TalentTreeWindow.TabsLeft.Spec[tab] then
+        TalentTreeWindow.TabsLeft.Spec[tab]:SetButtonState("PUSHED", 1)
+        lastPushedTabId = tab
+
+        -- Atualize o fundo e a grade de talentos para o tab selecionado
+        local tabIndex = findTabIndexById(tab)
+        if tabIndex then
+            local backgroundPath = "Interface\\AddOns\\ForgedWoWCommunication\\UI\\"..TalentTree.FORGE_TABS[tabIndex].Background
+            TalentTreeWindow.Container.Background:SetTexture(backgroundPath)
+        end
+
+    end
+	
+	 for _, tab in ipairs(TalentTree.FORGE_TABS) do
+        UpdateActivateSpecButton(tab)
+     end
+	
 end
 
 	 
@@ -430,8 +493,8 @@ function InitializeTalentLeft()
 		
 				
         TalentTreeWindow.TabsLeft.Spec[tab.Id] = CreateFrame("Button", "TalentTreeWindow.TabsLeft.Spec"..tab.Id, TalentTreeWindow.TabsLeft);
-        TalentTreeWindow.TabsLeft.Spec[tab.Id]:SetPoint("CENTER", Startx, -250);
-        TalentTreeWindow.TabsLeft.Spec[tab.Id]:SetSize(500, 750);
+        TalentTreeWindow.TabsLeft.Spec[tab.Id]:SetPoint("CENTER", Startx, -265);
+        TalentTreeWindow.TabsLeft.Spec[tab.Id]:SetSize(498, 795);
         TalentTreeWindow.TabsLeft.Spec[tab.Id]:SetFrameLevel(5)
 
 		
@@ -592,14 +655,27 @@ function InitializeTalentLeft()
 
         TalentTreeWindow.TabsLeft.Spec[tab.Id].RoleText:SetPoint("RIGHT", TalentTreeWindow.TabsLeft.Spec[tab.Id].RoleTexture, "RIGHT", deslocamentoX, 0)
 		
+		
 		TalentTreeWindow.TabsLeft.Spec[tab.Id].ActivateSpecBtn = CreateFrame("Button", "ActivateSpecButton", TalentTreeWindow.TabsLeft.Spec[tab.Id], "UIPanelButtonTemplate")
         TalentTreeWindow.TabsLeft.Spec[tab.Id].ActivateSpecBtn:SetSize(130, 25)  -- Ajuste o tamanho conforme necessário
         TalentTreeWindow.TabsLeft.Spec[tab.Id].ActivateSpecBtn:SetPoint("BOTTOM", 0, 30)
 		TalentTreeWindow.TabsLeft.Spec[tab.Id].ActivateSpecBtn:SetText("Activate")
 		TalentTreeWindow.TabsLeft.Spec[tab.Id].ActivateSpecBtn:SetFrameLevel(clickInterceptor:GetFrameLevel() + 1)
+		
         TalentTreeWindow.TabsLeft.Spec[tab.Id].ActivateSpecBtn:SetScript("OnClick", function()
-          ActivateSpec(tab.Id)
-          currentTab = tab  -- Armazena o tab atual para uso no evento
+          currentTab = tab
+          ActivateSpec(currentTab.Id)
+        end)
+
+		
+        TalentTreeWindow.TabsLeft.Spec[tab.Id].ActivateSpecBtn:SetScript("OnUpdate", function(self, elapsed)
+          local playerLevel = UnitLevel("player")
+
+          if playerLevel < 10 then
+             self:Disable()
+          else
+             self:Enable()
+          end
         end)
 
         local eventFrame = CreateFrame("Frame")
@@ -657,6 +733,7 @@ function InitializeTalentLeft()
 		
     end
 end
+
 
 function InitializeForgePoints()
     if TalentTreeWindow.PointsBottomRight then
@@ -728,15 +805,13 @@ end
 
 --[[Talents HERE]]--
 function InitializeGridForTalent(tabId)
-    -- Esconder a grid existente, se houver
     if TalentTreeWindow.GridTalent then
         TalentTreeWindow.GridTalent:Hide();
     end
 
-    -- Criação da Grid
+
     TalentTreeWindow.GridTalent = CreateFrame("Frame", nil, TalentTreeWindow.Container);
     TalentTreeWindow.GridTalent:SetAllPoints();
-    TalentTreeWindow.GridTalent:Show();
 
     if not TalentTreeWindow.GridTalent.Talents then
         TalentTreeWindow.GridTalent.Talents = {};
@@ -782,17 +857,11 @@ function InitializeGridForTalent(tabId)
             end
 
         if not TalentTreeWindow.GridTalent.Talents[i][j] then
-            -- Código de criação do talento...
                     TalentTreeWindow.GridTalent.Talents[i][j] = CreateFrame("Button", nil, TalentTreeWindow.GridTalent);
                     TalentTreeWindow.GridTalent.Talents[i][j]:SetPoint("CENTER", posX, posY);
                     TalentTreeWindow.GridTalent.Talents[i][j]:SetFrameLevel(9);
                     TalentTreeWindow.GridTalent.Talents[i][j]:SetSize(visualizationSize, visualizationSize);
-					TalentTreeWindow.GridTalent.Talents[i][j]:SetPoint("CENTER", posX, -posY); -- Usando posY aqui
-			
-					--print("Node: ["..i.."]["..j.."] - Tree: "..tree.." - Position: "..posX..", "..posY);
-
-
-					
+					TalentTreeWindow.GridTalent.Talents[i][j]:SetPoint("CENTER", posX, -posY); -- Usando posY aqui				
 
                     TalentTreeWindow.GridTalent.Talents[i][j].TextureIcon = TalentTreeWindow.GridTalent.Talents[i][j]:CreateTexture(nil, "ARTWORK");
                     TalentTreeWindow.GridTalent.Talents[i][j].TextureIcon:SetAllPoints()
@@ -808,8 +877,6 @@ function InitializeGridForTalent(tabId)
 			        TalentTreeWindow.GridTalent.Talents[i][j].Border.texture:SetTexture("Interface\\AddOns\\ForgedWoWCommunication\\UI\\Talents_DF.blp") 
                     TalentTreeWindow.GridTalent.Talents[i][j].Border.texture:SetAllPoints(true)
 					
-
-                    -- Configuração de Ranks
                     TalentTreeWindow.GridTalent.Talents[i][j].Ranks = CreateFrame("Frame", nil, TalentTreeWindow.GridTalent.Talents[i][j]);
                     TalentTreeWindow.GridTalent.Talents[i][j].Ranks:SetFrameLevel(13);
                     TalentTreeWindow.GridTalent.Talents[i][j].Ranks:SetPoint("BOTTOM", 0, -12);
@@ -819,39 +886,12 @@ function InitializeGridForTalent(tabId)
                     TalentTreeWindow.GridTalent.Talents[i][j].RankText:SetFont("Fonts\\FRIZQT__.TTF", 13, "OUTLINE");
                     TalentTreeWindow.GridTalent.Talents[i][j].RankText:SetPoint("CENTER", 10, 8.5);
 
-                    -- Esconder inicialmente
 					TalentTreeWindow.GridTalent.Talents[i][j].node = {};
                     TalentTreeWindow.GridTalent.Talents[i][j]:Hide();
                 end
             end
         end
     end
-
-
---[[
---Development Grid]
-    local visualizationSize = 35  -- Tamanho das células de visualização
-    local basePosX, basePosY = -600, -440  -- Posições iniciais conforme definido acima
-    local gridVisualizationRows = 20  -- Número de linhas conforme loop existente
-    local gridVisualizationCols = 20  -- Número de colunas conforme loop existente
-
-    for i = 0, gridVisualizationRows - 1 do
-        local posY = basePosY + (i * 60)  -- Cálculo da posição Y baseado no loop original
-        for j = 0, gridVisualizationCols - 1 do
-            local posX = basePosX + (j * 30)  -- Cálculo da posição X baseado no loop original
-            local cell = CreateFrame("Frame", nil, TalentTreeWindow.GridTalent)
-            cell:SetSize(visualizationSize, visualizationSize)
-            cell:SetPoint("CENTER", posX, posY)
-            cell:SetBackdrop({bgFile = "Interface/Tooltips/UI-Tooltip-Background"})
-            cell:SetBackdropColor(0.1, 0.1, 0.1, 0.5)  -- Cor e transparência
-
-            local labelText = cell:CreateFontString(nil, "OVERLAY")
-            labelText:SetFont("Fonts\\FRIZQT__.TTF", 8, "OUTLINE")
-            labelText:SetPoint("CENTER", cell, "CENTER", 0, 0)
-            labelText:SetText(i .. "," .. j)
-        end
-    end
-	]]
 	
 function FindPreReq(spells, spellId)
     for _, spell in pairs(spells) do
@@ -880,13 +920,11 @@ end
 
 
 function LearnTalentChoice(tabId, spell, choiceSpellId)
-        print("LearnTalentChoice", tabId, choiceSpellId)
         PushForgeMessage(ForgeTopic.LEARN_TALENT, tabId .. ";" .. choiceSpellId..";"..spell.nodeType)
 		ShowTypeTalentPoint(CharacterPointType.TALENT_SKILL_TREE, strTalentType, tabId, TalentType) 
 end
 
 function ActivateSpec(tabId)
-        print("Spec to Activate:", tabId)
         PushForgeMessage(ForgeTopic.ACTIVATE_CLASS_SPEC, tabId)
 end
 
@@ -1301,7 +1339,7 @@ function InitializeGridForForgeSkills()
                 bgFile = PATH .. "rank_placeholder"
             })
             TalentTreeWindow.GridForgeSkill.Talents[i][j].RankText =
-                TalentTreeWindow.GridForgeSkill.Talents[i][j].Ranks:CreateFontString()
+            TalentTreeWindow.GridForgeSkill.Talents[i][j].Ranks:CreateFontString()
             TalentTreeWindow.GridForgeSkill.Talents[i][j].RankText:SetFont("Fonts\\FRIZQT__.TTF", 13, "OUTLINE")
             TalentTreeWindow.GridForgeSkill.Talents[i][j].RankText:SetPoint("BOTTOM", 0, 8.5)
             TalentTreeWindow.GridForgeSkill.Talents[i][j].node = {};
