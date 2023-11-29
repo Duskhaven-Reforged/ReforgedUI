@@ -494,7 +494,8 @@ DeserializerDefinitions = {
                     }, {
                         NAME = "RequiredLevel"
                     }, {
-                        NAME = "TabPointReq"
+                        NAME = "TabPointReq",
+                        TYPE = FieldType.NUMBER
                     }, {
                         NAME = "NumberOfRanks"
                     }, {

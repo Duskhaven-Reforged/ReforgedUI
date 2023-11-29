@@ -11,6 +11,12 @@ TalentTree = {
     INITIALIZED = false
 }
 
+TreeCache = {
+    Spells = {},
+    PointsSpent = {},
+    Investments = {}
+}
+
 TalentTreeWindow = CreateFrame("Frame", "TalentFrame", UIParent);
 TalentTreeWindow:SetSize(1000, 800)
 TalentTreeWindow:SetPoint("CENTER", 0, 50) --- LEFT/RIGHT -- --UP/DOWN --
