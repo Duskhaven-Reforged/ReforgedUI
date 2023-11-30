@@ -1023,7 +1023,7 @@ function InitializeViewFromGrid(children, spells, tabId, offset)
         end
 
         frame.CanUprank = false
-        frame.CanDerank = false
+        frame.CanDerank = true
 
         SpellCache = {}
         TreeCache.Spells[spell.SpellId] = 0;
@@ -1049,8 +1049,8 @@ function InitializeViewFromGrid(children, spells, tabId, offset)
 function IncreaseRank(spellId)
     spellRank = TreeCache.Spells[spellId];
     TreeCache.Spells[spellId] = spellRank + 1
+
     TreeCache.PointsSpent[tab.Id] = TreeCache.PointsSpent[tab.Id] + spell.RankCost
-    TreeCache.Investments[spell.TabPointReq] = TreeCache.Investments[spell.TabPointReq] + spell.RankCost
 
     local spellIds = {}
     for id, rank in pairs(TreeCache.Spells) do
@@ -1065,7 +1065,6 @@ function DecreaseRank(spellId)
     TreeCache.Spells[spellId] = spellRank - 1
 
     TreeCache.PointsSpent[tab.Id] = TreeCache.PointsSpent[tab.Id] - spell.RankCost
-    TreeCache.Investments[spell.TabPointReq] = TreeCache.Investments[spell.TabPointReq] - spell.RankCost
 
     local spellIds = {}
     for id, rank in pairs(TreeCache.Spells) do
@@ -1092,24 +1091,24 @@ end
 
         Choice_Talents.buttons = Choice_Talents.buttons or {}
 
-       for i, choiceSpellId in ipairs(spell.Choices or {}) do
-          local button = Choice_Talents.buttons[i]
+        for i, choiceSpellId in ipairs(spell.Choices or {}) do
+            local button = Choice_Talents.buttons[i]
                 if not button then
-                       button = CreateFrame("Button", nil, Choice_Talents)
-                       button:SetSize(50, 50)
-                       Choice_Talents.buttons[i] = button
+                    button = CreateFrame("Button", nil, Choice_Talents)
+                    button:SetSize(50, 50)
+                    Choice_Talents.buttons[i] = button
 
                 local texture = button:CreateTexture(nil, "BACKGROUND")
-                      texture:SetAllPoints(button)
-		              button.texture = texture
+                texture:SetAllPoints(button)
+		        button.texture = texture
 				
 		        local Bordertexture = button:CreateTexture(nil, "ARTWORK")
-                      Bordertexture:SetPoint("CENTER", 0, 2)
-		              Bordertexture:SetSize(button:GetWidth() * 1.7, button:GetHeight() * 1.7)
-                      button.textureBorder = Bordertexture
-		              Bordertexture:SetTexture("Interface\\AddOns\\ForgedWoWCommunication\\UI\\Talents_DF.blp") 
-		              Bordertexture:SetTexCoord(0.5, 0.5625, 0.125, 0.1875)
-		              Bordertexture:SetVertexColor(1, 1, 0, 1)
+                Bordertexture:SetPoint("CENTER", 0, 2)
+	            Bordertexture:SetSize(button:GetWidth() * 1.7, button:GetHeight() * 1.7)
+                button.textureBorder = Bordertexture
+	            Bordertexture:SetTexture("Interface\\AddOns\\ForgedWoWCommunication\\UI\\Talents_DF.blp") 
+	            Bordertexture:SetTexCoord(0.5, 0.5625, 0.125, 0.1875)
+	            Bordertexture:SetVertexColor(1, 1, 0, 1)
         end
 
     local spellName, _, spellIcon = GetSpellInfo(choiceSpellId)
@@ -1139,42 +1138,46 @@ Choice_Talents:Show()
 
 end)
 
-            frame:SetScript("OnLeave", function()
-                FirstRankToolTip:Hide();
-                SecondRankToolTip:Hide();
-                frame.IsTooltipActive = false;
-				Choice_Talents:Hide()
-            end)
+    frame:SetScript("OnLeave", function()
+        FirstRankToolTip:Hide();
+        SecondRankToolTip:Hide();
+        frame.IsTooltipActive = false;
+		Choice_Talents:Hide()
+    end)
 		
-
-
 frame.RankText:SetText(CurrentRankSpell(CurrentRank))
 frame:RegisterForClicks("AnyDown");
 frame:SetScript("OnMouseDown", function(self, button)
     if spell.nodeType < 2 then
+        print(frame.CanDerank)
         if (button == 'LeftButton' and frame.CanUprank) then
             if TreeCache.Spells[spell.SpellId] < NumberOfRanks then
                 IncreaseRank(spell.SpellId)
-                TreeCache.Investments[spell.TabPointReq] = TreeCache.Investments[spell.TabPointReq] + 1
+                TreeCache.Investments[spell.TabPointReq] = TreeCache.Investments[spell.TabPointReq] + spell.RankCost
             end
         elseif (frame.CanDerank) then
             if TreeCache.Spells[spell.SpellId] > 0 then
                 DecreaseRank(spell.SpellId)
-                TreeCache.Investments[spell.TabPointReq] = TreeCache.Investments[spell.TabPointReq] - 1
+                TreeCache.Investments[spell.TabPointReq] = TreeCache.Investments[spell.TabPointReq] - spell.RankCost
             end
         end
         frame.RankText:SetText(TreeCache.Spells[spell.SpellId])
-        if spell.TabPointReq > 0 then
-            print(TreeCache.Investments[spell.TabPointReq-5])
-        end
     end
-    print(dump(TreeCache.Investments))
     -- Aqui você pode adicionar qualquer outra lógica necessária para outros tipos de nodeType
 end)
 end
 		   
 frame:SetScript("OnUpdate", function()
-    frame.CanDerank = true
+    if spell.TabPointReq < 45 then
+        if TreeCache.Investments[spell.TabPointReq] - 1 < 5
+            and TreeCache.Investments[spell.TabPointReq+5] > 0 then
+                frame.CanDerank = false
+        else
+            frame.CanDerank = true
+        end
+    else
+        frame.CanDerank = true
+    end
 
     if spell.nodeType == 2 then
         if not IsMouseOverFrame(frame, 25) and not mouseOverButton then
@@ -1219,8 +1222,7 @@ frame:SetScript("OnUpdate", function()
 	   frame.Border.texture:SetVertexColor(1, 1, 0, 1)
 	end
 
-    if ColumnIndex > 1 and (TreeCache.PointsSpent[spell.SpecId] < spell.TabPointReq
-        or UnitLevel("player") < tonumber(spell.RequiredLevel)) then
+    if ColumnIndex > 1 and (TreeCache.Investments[spell.TabPointReq-5] < 5 or UnitLevel("player") < tonumber(spell.RequiredLevel)) then
         -- Aplica o efeito cinza se o spellID não estiver na SpellCache
         frame.TextureIcon:SetDesaturated(true)
         if frame.Border and frame.Border.texture then
@@ -1235,7 +1237,6 @@ frame:SetScript("OnUpdate", function()
         end
         frame.CanUprank = true
     end
-	
 end)
 
 		   
