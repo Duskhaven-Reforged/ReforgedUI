@@ -1057,11 +1057,13 @@ function InitializeViewFromGrid(children, spells, tabId, offset)
 
         frame.CanUprank = false
         frame.CanDerank = false
+        frame.update = false
 
         SpellCache = {}
         TreeCache.Spells[spell.SpellId] = 0;
         TreeCache.PointsSpent[tabId] = 0
         TreeCache.Investments[spell.TabPointReq] = 0
+        TreeCache.TotalInvests[spell.TabPointReq] = 0
 
         local Choice_Talents = CreateFrame("Frame", "Choice_Talents", TalentFrame)
               Choice_Talents:SetSize(200, 100)  -- Defina o tamanho conforme necessário
@@ -1185,30 +1187,69 @@ frame.RankText:SetText(CurrentRankSpell(CurrentRank))
 frame:RegisterForClicks("AnyDown");
 frame:SetScript("OnMouseDown", function(self, button)
     if spell.nodeType < 2 then
+        local change = false
         if (button == 'LeftButton' and frame.CanUprank) then
             if TreeCache.Spells[spell.SpellId] < NumberOfRanks then
                 IncreaseRank(spell.SpellId)
-                TreeCache.Investments[spell.TabPointReq] = TreeCache.Investments[spell.TabPointReq] + 1
+                TreeCache.Investments[spell.TabPointReq] = TreeCache.Investments[spell.TabPointReq] + spell.RankCost
+                change = true
             end
         elseif (frame.CanDerank) then
             if TreeCache.Spells[spell.SpellId] > 0 then
                 DecreaseRank(spell.SpellId)
-                TreeCache.Investments[spell.TabPointReq] = TreeCache.Investments[spell.TabPointReq] - 1
+                TreeCache.Investments[spell.TabPointReq] = TreeCache.Investments[spell.TabPointReq] - spell.RankCost
+                change = true
             end
         end
-        frame.RankText:SetText(TreeCache.Spells[spell.SpellId])
-        if spell.TabPointReq > 0 then
-            print(TreeCache.Investments[spell.TabPointReq-5])
+
+        if change then
+            local cumulative = 0
+            for i = 0, 50, 5 do
+                local value = TreeCache.Investments[i]
+                if value then
+                    cumulative = cumulative + value
+                    TreeCache.TotalInvests[i] = cumulative
+                    --print(i.." : "..value.." "..cumulative)
+                end
+            end
+
+            frame.update = true
+            frame.RankText:SetText(TreeCache.Spells[spell.SpellId])
         end
     end
-    print(dump(TreeCache.Investments))
+    --print(dump(TreeCache.Investments))
     -- Aqui você pode adicionar qualquer outra lógica necessária para outros tipos de nodeType
 end)
 end
 		   
 frame:SetScript("OnUpdate", function()
-    frame.CanDerank = true
+    if frame.update then
+        local allow = false
+        if TreeCache.Spells[spell.SpellId] > 0 then
+            local nextReq = spell.TabPointReq + 5
+            local spentAfter = {}
+            for i = nextReq, 50, 5 do
+                if TreeCache.Investments[i] then
+                    if TreeCache.Investments[i] > 0 then
+                        table.insert(spentAfter, i);
+                    end
+                end
+            end
 
+            if (#spentAfter > 0) then
+                --print(dump(spentAfter))
+                for _, tier in ipairs(spentAfter) do
+                    if TreeCache.TotalInvests[tier-5] then
+                        if tier > TreeCache.TotalInvests[tier-5]-1 then
+                            allow = true
+                        end
+                    end
+                end
+            end
+        end
+        frame.CanDerank = not allow
+    end
+    
     if spell.nodeType == 2 then
         if not IsMouseOverFrame(frame, 25) and not mouseOverButton then
             Choice_Talents:Hide()
@@ -1252,8 +1293,7 @@ frame:SetScript("OnUpdate", function()
 	   frame.Border.texture:SetVertexColor(1, 1, 0, 1)
 	end
 
-    if ColumnIndex > 1 and (TreeCache.PointsSpent[spell.SpecId] < spell.TabPointReq
-        or UnitLevel("player") < tonumber(spell.RequiredLevel)) then
+    if ColumnIndex > 1 and (TreeCache.PointsSpent[tabId] < spell.TabPointReq or UnitLevel("player") < tonumber(spell.RequiredLevel)) then
         -- Aplica o efeito cinza se o spellID não estiver na SpellCache
         frame.TextureIcon:SetDesaturated(true)
         if frame.Border and frame.Border.texture then

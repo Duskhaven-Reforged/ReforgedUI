@@ -14,7 +14,8 @@ TalentTree = {
 TreeCache = {
     Spells = {},
     PointsSpent = {},
-    Investments = {}
+    Investments = {},
+    TotalInvests = {},
 }
 
 local Backdrop = {
