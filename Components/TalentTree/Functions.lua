@@ -40,31 +40,61 @@ function FindTabInForgeSpell(tabId)
     end
 end
 
+local originalButtonTextures = {}
+
+local function SaveOriginalButtonTextures(button, tabId)
+    if not originalButtonTextures[tabId] then
+        originalButtonTextures[tabId] = {
+            normal = button:GetNormalTexture() and button:GetNormalTexture():GetTexture() or nil,
+            pushed = button:GetPushedTexture() and button:GetPushedTexture():GetTexture() or nil,
+            highlight = button:GetHighlightTexture() and button:GetHighlightTexture():GetTexture() or nil
+        }
+    end
+end
+
+local function UpdateButtonTexture(button, textureKey, texturePath)
+    if texturePath then
+        local texture = button:CreateTexture()
+        texture:SetTexture(texturePath)
+        texture:SetSize(button:GetWidth() + 100, button:GetHeight() + 10)
+        texture:SetPoint("CENTER", button, "CENTER", 40, -5)
+
+        if textureKey == "normal" then
+            button:SetNormalTexture(texture)
+        elseif textureKey == "pushed" then
+            button:SetPushedTexture(texture)
+        elseif textureKey == "highlight" then
+            button:SetHighlightTexture(texture)
+        end
+    end
+end
+
 local function UpdateActivateSpecButton(tab)
     local button = TalentTreeWindow.TabsLeft.Spec[tab.Id].ActivateSpecBtn
     local isTabSelected = TalentTreeWindow.TabsLeft.Spec[tab.Id]:GetButtonState() == "PUSHED"
 
-	 
-    local originalNormalTexture = button:GetNormalTexture()
-    local originalPushedTexture = button:GetPushedTexture()
-    local originalHighlightTexture = button:GetHighlightTexture()
-	
+    SaveOriginalButtonTextures(button, tab.Id)
+
     if isTabSelected then
         button:SetText("Activated")
         button:SetNormalFontObject(GameFontHighlightSmall)
-        button:SetNormalTexture(nil) -- Remove a textura normal
-        button:SetPushedTexture(nil) -- Remove a textura de clique
-        button:SetHighlightTexture(nil) -- Remove a textura de destaque
-        button:GetFontString():SetTextColor(0, 1, 0) -- Define a cor do texto para verde
+        button:SetNormalTexture(nil)
+        button:SetPushedTexture(nil)
+        button:SetHighlightTexture(nil)
+        button:GetFontString():SetTextColor(0, 1, 0)
     else
         button:SetText("Activate")
         button:SetNormalFontObject(GameFontNormalSmall)
-        button:SetNormalTexture(originalNormalTexture)
-        button:SetPushedTexture(originalPushedTexture)
-        button:SetHighlightTexture(originalHighlightTexture)
-        button:GetFontString():SetTextColor(1, 1, 1) 
+
+        local textures = originalButtonTextures[tab.Id]
+        UpdateButtonTexture(button, "normal", textures.normal)
+        UpdateButtonTexture(button, "pushed", textures.pushed)
+        UpdateButtonTexture(button, "highlight", textures.highlight)
+
+        button:GetFontString():SetTextColor(1, 1, 1)
     end
 end
+
 
 function FindExistingTab(tabId)
     for _, tab in ipairs(TalentTree.FORGE_TABS) do
@@ -585,10 +615,10 @@ function InitializeTalentLeft()
         TalentTreeWindow.TabsLeft.Spec[tab.Id].RoleText:SetText(Roles[tostring(tab.Role)][1])
 		
 		TalentTreeWindow.TabsLeft.Spec[tab.Id].Description = TalentTreeWindow.TabsLeft.Spec[tab.Id]:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-        TalentTreeWindow.TabsLeft.Spec[tab.Id].Description:SetFont("Fonts\\FRIZQT__.TTF", 15, "OUTLINE")
+        TalentTreeWindow.TabsLeft.Spec[tab.Id].Description:SetFont("Fonts\\FRIZQT__.TTF", 18, "OUTLINE")
 		TalentTreeWindow.TabsLeft.Spec[tab.Id].Description:SetText(tab.Description)
 		TalentTreeWindow.TabsLeft.Spec[tab.Id].Description:SetWidth(300)
-        TalentTreeWindow.TabsLeft.Spec[tab.Id].Description:SetPoint("CENTER", 0, -100)
+        TalentTreeWindow.TabsLeft.Spec[tab.Id].Description:SetPoint("CENTER", 0, -70)
         
 		--Sample Spells--
         local spellIconIds = tab.SpellString
@@ -665,6 +695,7 @@ function InitializeTalentLeft()
         TalentTreeWindow.TabsLeft.Spec[tab.Id].ActivateSpecBtn:SetScript("OnClick", function()
           currentTab = tab
           ActivateSpec(currentTab.Id)
+		  ClassSpecWindow.Lockout:Show()
         end)
 
 		
@@ -685,8 +716,10 @@ function InitializeTalentLeft()
                 if unitID == "player" then
                   if event == "UNIT_SPELLCAST_SUCCEEDED" and spellName == "Activate Primary Spec" and currentTab then
                     SelectTab(currentTab)
+					ClassSpecWindow.Lockout:Hide()
                     currentTab = nil
                   elseif event == "UNIT_SPELLCAST_INTERRUPTED" and currentTab then
+				  ClassSpecWindow.Lockout:Hide()
                     currentTab = nil
                   end
                 end
@@ -1023,7 +1056,7 @@ function InitializeViewFromGrid(children, spells, tabId, offset)
         end
 
         frame.CanUprank = false
-        frame.CanDerank = true
+        frame.CanDerank = false
 
         SpellCache = {}
         TreeCache.Spells[spell.SpellId] = 0;
@@ -1049,8 +1082,8 @@ function InitializeViewFromGrid(children, spells, tabId, offset)
 function IncreaseRank(spellId)
     spellRank = TreeCache.Spells[spellId];
     TreeCache.Spells[spellId] = spellRank + 1
-
     TreeCache.PointsSpent[tab.Id] = TreeCache.PointsSpent[tab.Id] + spell.RankCost
+    TreeCache.Investments[spell.TabPointReq] = TreeCache.Investments[spell.TabPointReq] + spell.RankCost
 
     local spellIds = {}
     for id, rank in pairs(TreeCache.Spells) do
@@ -1065,6 +1098,7 @@ function DecreaseRank(spellId)
     TreeCache.Spells[spellId] = spellRank - 1
 
     TreeCache.PointsSpent[tab.Id] = TreeCache.PointsSpent[tab.Id] - spell.RankCost
+    TreeCache.Investments[spell.TabPointReq] = TreeCache.Investments[spell.TabPointReq] - spell.RankCost
 
     local spellIds = {}
     for id, rank in pairs(TreeCache.Spells) do
@@ -1091,24 +1125,24 @@ end
 
         Choice_Talents.buttons = Choice_Talents.buttons or {}
 
-        for i, choiceSpellId in ipairs(spell.Choices or {}) do
-            local button = Choice_Talents.buttons[i]
+       for i, choiceSpellId in ipairs(spell.Choices or {}) do
+          local button = Choice_Talents.buttons[i]
                 if not button then
-                    button = CreateFrame("Button", nil, Choice_Talents)
-                    button:SetSize(50, 50)
-                    Choice_Talents.buttons[i] = button
+                       button = CreateFrame("Button", nil, Choice_Talents)
+                       button:SetSize(50, 50)
+                       Choice_Talents.buttons[i] = button
 
                 local texture = button:CreateTexture(nil, "BACKGROUND")
-                texture:SetAllPoints(button)
-		        button.texture = texture
+                      texture:SetAllPoints(button)
+		              button.texture = texture
 				
 		        local Bordertexture = button:CreateTexture(nil, "ARTWORK")
-                Bordertexture:SetPoint("CENTER", 0, 2)
-	            Bordertexture:SetSize(button:GetWidth() * 1.7, button:GetHeight() * 1.7)
-                button.textureBorder = Bordertexture
-	            Bordertexture:SetTexture("Interface\\AddOns\\ForgedWoWCommunication\\UI\\Talents_DF.blp") 
-	            Bordertexture:SetTexCoord(0.5, 0.5625, 0.125, 0.1875)
-	            Bordertexture:SetVertexColor(1, 1, 0, 1)
+                      Bordertexture:SetPoint("CENTER", 0, 2)
+		              Bordertexture:SetSize(button:GetWidth() * 1.7, button:GetHeight() * 1.7)
+                      button.textureBorder = Bordertexture
+		              Bordertexture:SetTexture("Interface\\AddOns\\ForgedWoWCommunication\\UI\\Talents_DF.blp") 
+		              Bordertexture:SetTexCoord(0.5, 0.5625, 0.125, 0.1875)
+		              Bordertexture:SetVertexColor(1, 1, 0, 1)
         end
 
     local spellName, _, spellIcon = GetSpellInfo(choiceSpellId)
@@ -1138,46 +1172,42 @@ Choice_Talents:Show()
 
 end)
 
-    frame:SetScript("OnLeave", function()
-        FirstRankToolTip:Hide();
-        SecondRankToolTip:Hide();
-        frame.IsTooltipActive = false;
-		Choice_Talents:Hide()
-    end)
+            frame:SetScript("OnLeave", function()
+                FirstRankToolTip:Hide();
+                SecondRankToolTip:Hide();
+                frame.IsTooltipActive = false;
+				Choice_Talents:Hide()
+            end)
 		
+
+
 frame.RankText:SetText(CurrentRankSpell(CurrentRank))
 frame:RegisterForClicks("AnyDown");
 frame:SetScript("OnMouseDown", function(self, button)
     if spell.nodeType < 2 then
-        print(frame.CanDerank)
         if (button == 'LeftButton' and frame.CanUprank) then
             if TreeCache.Spells[spell.SpellId] < NumberOfRanks then
                 IncreaseRank(spell.SpellId)
-                TreeCache.Investments[spell.TabPointReq] = TreeCache.Investments[spell.TabPointReq] + spell.RankCost
+                TreeCache.Investments[spell.TabPointReq] = TreeCache.Investments[spell.TabPointReq] + 1
             end
         elseif (frame.CanDerank) then
             if TreeCache.Spells[spell.SpellId] > 0 then
                 DecreaseRank(spell.SpellId)
-                TreeCache.Investments[spell.TabPointReq] = TreeCache.Investments[spell.TabPointReq] - spell.RankCost
+                TreeCache.Investments[spell.TabPointReq] = TreeCache.Investments[spell.TabPointReq] - 1
             end
         end
         frame.RankText:SetText(TreeCache.Spells[spell.SpellId])
+        if spell.TabPointReq > 0 then
+            print(TreeCache.Investments[spell.TabPointReq-5])
+        end
     end
+    print(dump(TreeCache.Investments))
     -- Aqui você pode adicionar qualquer outra lógica necessária para outros tipos de nodeType
 end)
 end
 		   
 frame:SetScript("OnUpdate", function()
-    if spell.TabPointReq < 45 then
-        if TreeCache.Investments[spell.TabPointReq] - 1 < 5
-            and TreeCache.Investments[spell.TabPointReq+5] > 0 then
-                frame.CanDerank = false
-        else
-            frame.CanDerank = true
-        end
-    else
-        frame.CanDerank = true
-    end
+    frame.CanDerank = true
 
     if spell.nodeType == 2 then
         if not IsMouseOverFrame(frame, 25) and not mouseOverButton then
@@ -1222,7 +1252,8 @@ frame:SetScript("OnUpdate", function()
 	   frame.Border.texture:SetVertexColor(1, 1, 0, 1)
 	end
 
-    if ColumnIndex > 1 and (TreeCache.Investments[spell.TabPointReq-5] < 5 or UnitLevel("player") < tonumber(spell.RequiredLevel)) then
+    if ColumnIndex > 1 and (TreeCache.PointsSpent[spell.SpecId] < spell.TabPointReq
+        or UnitLevel("player") < tonumber(spell.RequiredLevel)) then
         -- Aplica o efeito cinza se o spellID não estiver na SpellCache
         frame.TextureIcon:SetDesaturated(true)
         if frame.Border and frame.Border.texture then
@@ -1237,6 +1268,7 @@ frame:SetScript("OnUpdate", function()
         end
         frame.CanUprank = true
     end
+	
 end)
 
 		   

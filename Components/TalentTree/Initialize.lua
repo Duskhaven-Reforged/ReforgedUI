@@ -59,25 +59,37 @@ end
 
 function GetCharacterSpecs(msg)
     local listOfObjects = DeserializeMessage(DeserializerDefinitions.GET_CHARACTER_SPECS, msg);
+    local defaultSpec = nil
     for i, spec in ipairs(listOfObjects) do
         if spec.Active == "1" then
+            defaultSpec = spec.CharacterSpecTabId
             FORGE_ACTIVE_SPEC = spec;
         else
             table.insert(TalentTree.FORGE_SPEC_SLOTS, spec)
         end
     end
-						
+                        
     if TalentTree.INITIALIZED == false then
         InitializeTalentLeft();
         InitializeForgePoints();
         InitializeTabForSpellsToForge(TalentTree.FORGE_SPELLS_PAGES);
+
         local firstTab = TalentTree.FORGE_TABS[1];
+        if defaultSpec then
+            print (defaultSpec)
+            for i, tab in ipairs(TalentTree.FORGE_TABS) do
+                if tab.Id == defaultSpec then
+                    firstTab = tab
+                end
+            end
+        end         
+
         SelectTab(firstTab);
     else
         local strTalentType = GetStrByCharacterPointType(TalentTree.FORGE_SELECTED_TAB.TalentType);
         ShowTypeTalentPoint(TalentTree.FORGE_SELECTED_TAB.TalentType, strTalentType)
     end
-    InitializeProgressionBar();
+
     TalentTree.INITIALIZED = true;
 end
 

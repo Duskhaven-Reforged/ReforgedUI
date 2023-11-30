@@ -17,6 +17,13 @@ TreeCache = {
     Investments = {}
 }
 
+local Backdrop = {
+    bgFile = "Interface/Tooltips/UI-Tooltip-Background",  -- Arquivo de textura do fundo
+    edgeFile = "Interface/Tooltips/UI-Tooltip-Border",  -- Arquivo de textura da borda
+    tile = true, tileSize = 16, edgeSize = 16, 
+    insets = { left = 4, right = 4, top = 4, bottom = 4 }
+}
+
 TalentTreeWindow = CreateFrame("Frame", "TalentFrame", UIParent);
 TalentTreeWindow:SetSize(1000, 800)
 TalentTreeWindow:SetPoint("CENTER", 0, 50) --- LEFT/RIGHT -- --UP/DOWN --
@@ -154,6 +161,14 @@ BorderSpec:SetPoint("CENTER", 0, -100)
 BorderSpec:SetTexCoord(0, 1, 0, 0.57)
 BorderSpec:SetSize(TalentTreeWindow:GetWidth() * 1.8, TalentTreeWindow:GetHeight() * 1.3)
 
+ClassSpecWindow.Lockout = CreateFrame("Frame", "ClassSpecWindow.Lockout", ClassSpecWindow)
+ClassSpecWindow.Lockout:SetSize(ClassSpecWindow:GetWidth() * 1.433, ClassSpecWindow:GetHeight() * 0.96)
+ClassSpecWindow.Lockout:SetFrameLevel(100)
+ClassSpecWindow.Lockout:EnableMouse(true)
+ClassSpecWindow.Lockout:SetPoint("CENTER", -25, -5)
+ClassSpecWindow.Lockout:Hide()
+
+
 BackgroundSpec = ClassSpecWindow:CreateTexture(nil, "BACKGROUND")
 BackgroundSpec:SetTexture(CONSTANTS.UI.BG_SPEC)
 BackgroundSpec:SetPoint("CENTER", 0, -117)
@@ -186,7 +201,18 @@ ClassIconTexture = window:CreateTexture(nil, "ARTWORK")
 ClassIconTexture:SetTexture(CONSTANTS.UI.MAIN_BG)
 ClassIconTexture:SetSize(67, 67)
 ClassIconTexture:SetDrawLayer("ARTWORK", 1)
-SetPortraitToTexture(ClassIconTexture, CONSTANTS.classIcon[string.upper(CONSTANTS.CLASS)])		
+SetPortraitToTexture(ClassIconTexture, CONSTANTS.classIcon[string.upper(CONSTANTS.CLASS)])	
+
+LockoutTexture = ClassSpecWindow.Lockout:CreateTexture(nil, "BACKGROUND") 
+LockoutTexture:SetAllPoints()
+LockoutTexture:SetTexture("Interface\\AddOns\\ForgedWoWCommunication\\UI\\Background_DragonflightSpec.blp")
+LockoutTexture:SetTexCoord(0.083007813, 0.880859375, 0.576660156, 1)
+LockoutTexture:SetVertexColor(0, 0, 0, 0.7)
+LockoutTexture:SetDrawLayer("BACKGROUND", -1)
+
+ClassSpecWindow.Lockout.texture = texture
+
+
 
 	    if window == TalentTreeWindow then
         closeButton:SetPoint("TOPRIGHT", window, "TOPRIGHT", 190, 8) 
@@ -197,13 +223,6 @@ SetPortraitToTexture(ClassIconTexture, CONSTANTS.classIcon[string.upper(CONSTANT
     end
 	
 end
-
-local Backdrop = {
-    bgFile = "Interface/Tooltips/UI-Tooltip-Background",  -- Arquivo de textura do fundo
-    edgeFile = "Interface/Tooltips/UI-Tooltip-Border",  -- Arquivo de textura da borda
-    tile = true, tileSize = 16, edgeSize = 16, 
-    insets = { left = 4, right = 4, top = 4, bottom = 4 }
-}
 
 
 TalentTreeWindow.Container = CreateFrame("Frame", "Talent.Background", TalentTreeWindow);
