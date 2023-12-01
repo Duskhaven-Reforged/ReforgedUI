@@ -22,8 +22,8 @@ local function printTable(t, indent)
 end
 
 function InitializeTalentTree()
-    InitializeGridForForgeSkills();
-    InitializeGridForTalent();
+    --InitializeGridForForgeSkills();
+    --InitializeGridForTalent();
     FirstRankToolTip = CreateFrame("GameTooltip", "firstRankToolTip", WorldFrame, "GameTooltipTemplate");
     SecondRankToolTip = CreateFrame("GameTooltip", "secondRankToolTip", WorldFrame, "GameTooltipTemplate");
     PushForgeMessage(ForgeTopic.TalentTree_LAYOUT, "-1")
@@ -76,7 +76,6 @@ function GetCharacterSpecs(msg)
 
         local firstTab = TalentTree.FORGE_TABS[1];
         if defaultSpec then
-            print (defaultSpec)
             for i, tab in ipairs(TalentTree.FORGE_TABS) do
                 if tab.Id == defaultSpec then
                     firstTab = tab

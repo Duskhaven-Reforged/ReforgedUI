@@ -16,6 +16,8 @@ TreeCache = {
     PointsSpent = {},
     Investments = {},
     TotalInvests = {},
+    PrereqUnlocks = {},
+    PrereqRev = {}
 }
 
 local Backdrop = {
@@ -48,8 +50,6 @@ ClassSpecWindow:SetScript("OnHide", function(self)
 end)
 
 tinsert(UISpecialFrames, "ClassSpecWindow")
-
-
 
 local windows = {TalentTreeWindow, ClassSpecWindow}
 for i, window in ipairs(windows) do
@@ -306,4 +306,14 @@ resetButton:Show()
 
 resetButton:SetScript("OnClick", function()
     StaticPopup_Show("CONFIRM_TALENT_WIPE")
+end)
+
+local resetButton = CreateFrame("Button", "AcceptTalentsButton", TalentTreeWindow, "UIPanelButtonTemplate")
+resetButton:SetSize(115, 40)
+resetButton:SetPoint("BOTTOM", 0, 0) -- Position the button at the top right of the TalentTreeWindow
+resetButton:SetText("a")
+resetButton:Show()
+
+resetButton:SetScript("OnClick", function()
+    print("tried")
 end)

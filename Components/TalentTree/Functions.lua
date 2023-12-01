@@ -378,7 +378,13 @@ function SelectTab(tab)
 	
     if tab.TalentType == CharacterPointType.RACIAL_TREE or tab.TalentType == CharacterPointType.TALENT_SKILL_TREE or
         tab.TalentType == CharacterPointType.PRESTIGE_TREE then
-        InitializeGridForTalent();
+        InitializeGridForTalent(tab.Id);
+        if not TreeCache.Spells[tab.Id] then
+            TreeCache.Spells[tab.Id] = {}
+        end
+        if not TreeCache.PrereqUnlocks[tab.Id] then
+            TreeCache.PrereqUnlocks[tab.Id] = {}
+        end
         if tab.Talents then
             InitializeViewFromGrid(TalentTreeWindow.GridTalent, tab.Talents, tab.Id, 392);
         end
@@ -842,7 +848,6 @@ function InitializeGridForTalent(tabId)
         TalentTreeWindow.GridTalent:Hide();
     end
 
-
     TalentTreeWindow.GridTalent = CreateFrame("Frame", nil, TalentTreeWindow.Container);
     TalentTreeWindow.GridTalent:SetAllPoints();
 
@@ -850,11 +855,11 @@ function InitializeGridForTalent(tabId)
         TalentTreeWindow.GridTalent.Talents = {};
     end
 
-    local visualizationSize = 32;
+    local visualizationSize = 30;
     local spaceBetweenNodes = 30; 
     local gridRows = 30;
-    local totalGridCols = 21;
-	local MaxColumns = 10;
+    local totalGridCols = 22;
+	local MaxColumns = 11;
 
     for i = 0, gridRows - 1 do
         if not TalentTreeWindow.GridTalent.Talents[i] then
@@ -889,7 +894,7 @@ function InitializeGridForTalent(tabId)
                 posY = basePosY + (i * (visualizationSize + spaceBetweenNodes));
             end
 
-        if not TalentTreeWindow.GridTalent.Talents[i][j] then
+            if not TalentTreeWindow.GridTalent.Talents[i][j] then
                     TalentTreeWindow.GridTalent.Talents[i][j] = CreateFrame("Button", nil, TalentTreeWindow.GridTalent);
                     TalentTreeWindow.GridTalent.Talents[i][j]:SetPoint("CENTER", posX, posY);
                     TalentTreeWindow.GridTalent.Talents[i][j]:SetFrameLevel(9);
@@ -1045,11 +1050,21 @@ function InitializeViewFromGrid(children, spells, tabId, offset)
     for index, spell in pairs(spells) do
         local CurrentRank, SpellId, NextSpellId = GetSpellIdAndNextRank(tabId, spell);
         local name, rank, icon, castTime, minRange, maxRange, spellID = GetSpellInfo(spell.SpellId)
-        local ColumnIndex = tonumber(spell.RowIndex);
-        local RowIndex = tonumber(spell.ColumnIndex);
+        local ColumnIndex = tonumber(spell.ColumnIndex);
+        local RowIndex = tonumber(spell.RowIndex)-1;
         local NumberOfRanks = tonumber(spell.NumberOfRanks);
-        local frame = children.Talents[ColumnIndex][RowIndex];
+        local frame = children.Talents[RowIndex][ColumnIndex];
 		local tab = FindExistingTab(tabId)
+
+        if not TreeCache.Spells[tabId][RowIndex] then
+            TreeCache.Spells[tabId][RowIndex] = {};
+        end
+        if not TreeCache.Spells[tabId][RowIndex][ColumnIndex] then
+            TreeCache.Spells[tabId][RowIndex][ColumnIndex] = {};
+        end
+        if not TreeCache.Spells[tabId][RowIndex][ColumnIndex][spell.Id] then
+            TreeCache.Spells[tabId][RowIndex][ColumnIndex][spell.SpellId] = 0;
+        end
 
         if not frame then
             return;
@@ -1058,9 +1073,9 @@ function InitializeViewFromGrid(children, spells, tabId, offset)
         frame.CanUprank = false
         frame.CanDerank = false
         frame.update = false
+        frame.reqsMet = false
 
         SpellCache = {}
-        TreeCache.Spells[spell.SpellId] = 0;
         TreeCache.PointsSpent[tabId] = 0
         TreeCache.Investments[spell.TabPointReq] = 0
         TreeCache.TotalInvests[spell.TabPointReq] = 0
@@ -1080,36 +1095,6 @@ function InitializeViewFromGrid(children, spells, tabId, offset)
             frame.Border:Hide();
             frame.TextureIcon:SetTexture(icon);
         else
-		
-function IncreaseRank(spellId)
-    spellRank = TreeCache.Spells[spellId];
-    TreeCache.Spells[spellId] = spellRank + 1
-    TreeCache.PointsSpent[tab.Id] = TreeCache.PointsSpent[tab.Id] + spell.RankCost
-    TreeCache.Investments[spell.TabPointReq] = TreeCache.Investments[spell.TabPointReq] + spell.RankCost
-
-    local spellIds = {}
-    for id, rank in pairs(TreeCache.Spells) do
-        table.insert(spellIds, id..":"..rank)
-    end
-    print("Spell IDs in Cache:", table.concat(spellIds, ", "))  -- Imprime todos os IDs em uma linha
-
-    CurrentRank = TreeCache.Spells[spellId]
-end
-function DecreaseRank(spellId)
-    spellRank = TreeCache.Spells[spellId];
-    TreeCache.Spells[spellId] = spellRank - 1
-
-    TreeCache.PointsSpent[tab.Id] = TreeCache.PointsSpent[tab.Id] - spell.RankCost
-    TreeCache.Investments[spell.TabPointReq] = TreeCache.Investments[spell.TabPointReq] - spell.RankCost
-
-    local spellIds = {}
-    for id, rank in pairs(TreeCache.Spells) do
-        table.insert(spellIds, id..":"..rank)
-    end
-    print("Spell IDs in Cache:", table.concat(spellIds, ", "))  -- Imprime todos os IDs em uma linha
-
-    CurrentRank = TreeCache.Spells[spellId]
-end
 
     frame:SetScript("OnEnter", function()
 
@@ -1187,17 +1172,60 @@ frame.RankText:SetText(CurrentRankSpell(CurrentRank))
 frame:RegisterForClicks("AnyDown");
 frame:SetScript("OnMouseDown", function(self, button)
     if spell.nodeType < 2 then
+        local spellRank = TreeCache.Spells[tabId][RowIndex][ColumnIndex][spell.SpellId];
         local change = false
         if (button == 'LeftButton' and frame.CanUprank) then
-            if TreeCache.Spells[spell.SpellId] < NumberOfRanks then
-                IncreaseRank(spell.SpellId)
+            if TreeCache.Spells[tabId][RowIndex][ColumnIndex][spell.SpellId] < NumberOfRanks then
+                TreeCache.Spells[tabId][RowIndex][ColumnIndex][spell.SpellId] = spellRank + 1
+                TreeCache.PointsSpent[tab.Id] = TreeCache.PointsSpent[tab.Id] + spell.RankCost
                 TreeCache.Investments[spell.TabPointReq] = TreeCache.Investments[spell.TabPointReq] + spell.RankCost
+
+                local spellIds = {}
+                for id, rank in pairs(TreeCache.Spells[tabId][RowIndex][ColumnIndex]) do
+                    table.insert(spellIds, id..":"..rank)
+                end
+                print("Spell IDs in Cache:", table.concat(spellIds, ", "))  -- Imprime todos os IDs em uma linha
+                CurrentRank = TreeCache.Spells[tabId][RowIndex][ColumnIndex][spell.SpellId]
+
+                TreeCache.PrereqUnlocks[tabId][spell.SpellId] = CurrentRank
+                TreeCache.PrereqRev[spell.SpellId] = {}
+                if #spell.Prereqs > 0 then
+                    for _, req in ipairs(spell.Prereqs) do
+                        if TreeCache.PrereqRev[req.Talent] then
+                            TreeCache.PrereqRev[req.Talent][spell.SpellId] = true
+                        end
+                    end
+                end
+                print(dump(TreeCache.PrereqRev))
+
                 change = true
             end
         elseif (frame.CanDerank) then
-            if TreeCache.Spells[spell.SpellId] > 0 then
-                DecreaseRank(spell.SpellId)
+            if TreeCache.Spells[tabId][RowIndex][ColumnIndex][spell.SpellId] > 0 then
+                TreeCache.Spells[tabId][RowIndex][ColumnIndex][spell.SpellId] = spellRank - 1
+
+                TreeCache.PointsSpent[tab.Id] = TreeCache.PointsSpent[tab.Id] - spell.RankCost
                 TreeCache.Investments[spell.TabPointReq] = TreeCache.Investments[spell.TabPointReq] - spell.RankCost
+
+                local spellIds = {}
+                for id, rank in pairs(TreeCache.Spells[tabId][RowIndex][ColumnIndex]) do
+                    table.insert(spellIds, id..":"..rank)
+                end
+                print("Spell IDs in Cache:", table.concat(spellIds, ", "))  -- Imprime todos os IDs em uma linha
+                CurrentRank = TreeCache.Spells[tabId][RowIndex][ColumnIndex][spell.SpellId]
+
+                if NumberOfRanks > CurrentRank then
+                    TreeCache.PrereqUnlocks[tabId][spell.SpellId] = nil
+                    TreeCache.PrereqRev[spell.SpellId] = nil
+                    if #spell.Prereqs > 0 then
+                        for _, req in ipairs(spell.Prereqs) do
+                            if TreeCache.PrereqRev[req.Talent] then
+                                TreeCache.PrereqRev[req.Talent][spell.SpellId] = nil
+                            end
+                            --print(dump(TreeCache.PrereqRev))
+                        end
+                    end
+                end
                 change = true
             end
         end
@@ -1214,18 +1242,19 @@ frame:SetScript("OnMouseDown", function(self, button)
             end
 
             frame.update = true
-            frame.RankText:SetText(TreeCache.Spells[spell.SpellId])
+            frame.RankText:SetText(TreeCache.Spells[tabId][RowIndex][ColumnIndex][spell.SpellId])
         end
     end
     --print(dump(TreeCache.Investments))
     -- Aqui você pode adicionar qualquer outra lógica necessária para outros tipos de nodeType
 end)
 end
-		   
+
 frame:SetScript("OnUpdate", function()
+    local next = next
+    local allow = false
     if frame.update then
-        local allow = false
-        if TreeCache.Spells[spell.SpellId] > 0 then
+        if TreeCache.Spells[tabId][RowIndex][ColumnIndex][spell.SpellId] > 0 then
             local nextReq = spell.TabPointReq + 5
             local spentAfter = {}
             for i = nextReq, 50, 5 do
@@ -1247,8 +1276,14 @@ frame:SetScript("OnUpdate", function()
                 end
             end
         end
-        frame.CanDerank = not allow
     end
+    if TreeCache.PrereqRev[spell.SpellId] then
+        if next(TreeCache.PrereqRev[spell.SpellId]) then
+            allow = true
+        end
+    end
+    frame.CanDerank = not allow
+
     
     if spell.nodeType == 2 then
         if not IsMouseOverFrame(frame, 25) and not mouseOverButton then
@@ -1289,11 +1324,28 @@ frame:SetScript("OnUpdate", function()
 	
     if CurrentRank <= 0 then
 	   frame.Border.texture:SetVertexColor(0, 1, 0, 1)
-	elseif CurrentRank >= 1 or spellLearned then
+	elseif spellLearned then
 	   frame.Border.texture:SetVertexColor(1, 1, 0, 1)
 	end
 
-    if ColumnIndex > 1 and (TreeCache.PointsSpent[tabId] < spell.TabPointReq or UnitLevel("player") < tonumber(spell.RequiredLevel)) then
+    if #spell.Prereqs > 0 then
+        for _, prereq in ipairs(spell.Prereqs) do
+            local reqUnlocked = TreeCache.PrereqUnlocks[prereq.TalentTabId][prereq.Talent]
+            if reqUnlocked then
+                if tonumber(reqUnlocked) >= tonumber(prereq.RequiredRank) then
+                    frame.reqsMet = true
+                else
+                    frame.reqsMet = false
+                end
+            else
+                frame.reqsMet = false
+            end
+        end
+    else
+        frame.reqsMet = true
+    end
+
+    if ColumnIndex > 1 and (TreeCache.PointsSpent[tabId] < spell.TabPointReq or UnitLevel("player") < tonumber(spell.RequiredLevel) or not frame.reqsMet) then
         -- Aplica o efeito cinza se o spellID não estiver na SpellCache
         frame.TextureIcon:SetDesaturated(true)
         if frame.Border and frame.Border.texture then
@@ -1308,24 +1360,23 @@ frame:SetScript("OnUpdate", function()
         end
         frame.CanUprank = true
     end
-	
 end)
 
 		   
-		   if spell.nodeType == 0 then
-		   SetPortraitToTexture(frame.TextureIcon, icon)
-		   frame.Border.texture:ClearAllPoints()
-		   frame.Border.texture:SetPoint("CENTER", frame.Border, "CENTER", 2, 2)
-		   frame.Border.texture:SetSize(60, 60)
-		   frame.TextureIcon:ClearAllPoints()
-		   frame.TextureIcon:SetPoint("CENTER", frame.Border, "CENTER")
-		   frame.TextureIcon:SetSize(35, 35)
-		   elseif spell.nodeType == 1 then
-		   frame.TextureIcon:SetTexture(icon)
-		   frame.Border.texture:ClearAllPoints()
-		   frame.Border.texture:SetPoint("CENTER", frame.Border, "CENTER", 2, -3)
-		   frame.Border.texture:SetSize(59, 59)
-		   end
+   if spell.nodeType == 0 then
+   SetPortraitToTexture(frame.TextureIcon, icon)
+   frame.Border.texture:ClearAllPoints()
+   frame.Border.texture:SetPoint("CENTER", frame.Border, "CENTER", 2, 2)
+   frame.Border.texture:SetSize(60, 60)
+   frame.TextureIcon:ClearAllPoints()
+   frame.TextureIcon:SetPoint("CENTER", frame.Border, "CENTER")
+   frame.TextureIcon:SetSize(35, 35)
+   elseif spell.nodeType == 1 then
+   frame.TextureIcon:SetTexture(icon)
+   frame.Border.texture:ClearAllPoints()
+   frame.Border.texture:SetPoint("CENTER", frame.Border, "CENTER", 2, -3)
+   frame.Border.texture:SetSize(59, 59)
+   end
 		   
 if spell.nodeType == 2 and #spell.Choices >= 2 then
     local spellId1, spellId2 = spell.Choices[1], spell.Choices[2]
