@@ -378,12 +378,14 @@ function SelectTab(tab)
 	
     if tab.TalentType == CharacterPointType.RACIAL_TREE or tab.TalentType == CharacterPointType.TALENT_SKILL_TREE or
         tab.TalentType == CharacterPointType.PRESTIGE_TREE then
-        InitializeGridForTalent(tab.Id);
         if not TreeCache.Spells[tab.Id] then
             TreeCache.Spells[tab.Id] = {}
         end
         if not TreeCache.PrereqUnlocks[tab.Id] then
             TreeCache.PrereqUnlocks[tab.Id] = {}
+        end
+        if not TreeCache.IndexToFrame[tab.Id] then
+            TreeCache.IndexToFrame[tab.Id] = {}
         end
         if tab.Talents then
             InitializeViewFromGrid(TalentTreeWindow.GridTalent, tab.Talents, tab.Id, 392);
@@ -1014,7 +1016,9 @@ function InitializeViewFromGrid(children, spells, tabId, offset)
         local NumberOfRanks = tonumber(spell.NumberOfRanks);
         local frame = children.Talents[RowIndex][ColumnIndex];
 		local tab = FindExistingTab(tabId)
-
+        if not TreeCache.IndexToFrame[tab.Id][spell.nodeIndex] then
+            TreeCache.IndexToFrame[tab.Id][spell.nodeIndex] = { row = RowIndex, col = ColumnIndex }
+        end
         if not TreeCache.Spells[tabId][spell.nodeIndex] then
             TreeCache.Spells[tabId][spell.nodeIndex] = 0; 
         end
@@ -1200,6 +1204,10 @@ frame:SetScript("OnMouseDown", function(self, button)
 end)
 end
 
+function UpdateRanks()
+
+end
+
 frame:SetScript("OnUpdate", function()
     local next = next
     local allow = false
@@ -1369,6 +1377,7 @@ if spell.nodeType == 2 and #spell.Choices >= 2 then
 	
 	SetPortraitToTexture(frame.TextureIconLeft, texturePath1)
 	SetPortraitToTexture(frame.TextureIconRight, texturePath2)
+
 end
 		
         local TextureSettings = {

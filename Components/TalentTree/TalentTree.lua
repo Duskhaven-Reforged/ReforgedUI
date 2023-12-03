@@ -22,7 +22,8 @@ TreeCache = {
     PrereqUnlocks = {},
     PrereqRev = {},
     Points = {},
-    PreviousString = {}
+    PreviousString = {},
+    IndexToFrame = {}
 }
 
 local Backdrop = {
