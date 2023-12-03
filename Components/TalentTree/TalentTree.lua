@@ -8,7 +8,10 @@ TalentTree = {
     FORGE_CURRENT_PAGE = 0,
     FORGE_MAX_PAGE = nil,
     FORGE_TALENTS = nil,
-    INITIALIZED = false
+    INITIALIZED = false,
+    SELECTED_SPEC = nil,
+    MaxPoints = {},
+    ClassTree = nil
 }
 
 TreeCache = {
@@ -17,7 +20,9 @@ TreeCache = {
     Investments = {},
     TotalInvests = {},
     PrereqUnlocks = {},
-    PrereqRev = {}
+    PrereqRev = {},
+    Points = {},
+    PreviousString = {}
 }
 
 local Backdrop = {
@@ -26,6 +31,8 @@ local Backdrop = {
     tile = true, tileSize = 16, edgeSize = 16, 
     insets = { left = 4, right = 4, top = 4, bottom = 4 }
 }
+
+alpha = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 
 TalentTreeWindow = CreateFrame("Frame", "TalentFrame", UIParent);
 TalentTreeWindow:SetSize(1000, 800)
@@ -183,20 +190,16 @@ SpecTitleText:SetPoint("TOP", BackgroundSpec, "TOP", -20, -45)
 SpecTitleText:SetTextColor(1, 1, 0)
 SpecTitleText:SetText("Specializations")
 
-
-
 local windows = {TalentTreeWindow, ClassSpecWindow}
 
 for i, window in ipairs(windows) do
 local closeButton = CreateFrame("Button", "ClosePanel" .. i, window, "UIPanelCloseButton")
 closeButton:SetSize(40, 40)  -- Tamanho do botão
 
-
 -- Configurando o script de clique para fechar o frame
 closeButton:SetScript("OnClick", function()
     window:Hide()
 end)
-
 
 ClassIconTexture = window:CreateTexture(nil, "ARTWORK")
 ClassIconTexture:SetTexture(CONSTANTS.UI.MAIN_BG)
@@ -212,8 +215,6 @@ LockoutTexture:SetVertexColor(0, 0, 0, 0.7)
 LockoutTexture:SetDrawLayer("BACKGROUND", -1)
 
 ClassSpecWindow.Lockout.texture = texture
-
-
 
 	    if window == TalentTreeWindow then
         closeButton:SetPoint("TOPRIGHT", window, "TOPRIGHT", 190, 8) 
@@ -308,12 +309,29 @@ resetButton:SetScript("OnClick", function()
     StaticPopup_Show("CONFIRM_TALENT_WIPE")
 end)
 
-local resetButton = CreateFrame("Button", "AcceptTalentsButton", TalentTreeWindow, "UIPanelButtonTemplate")
-resetButton:SetSize(115, 40)
-resetButton:SetPoint("BOTTOM", 0, 0) -- Position the button at the top right of the TalentTreeWindow
-resetButton:SetText("a")
-resetButton:Show()
+local AcceptTalentsButton = CreateFrame("Button", "AcceptTalentsButton", TalentTreeWindow, "UIPanelButtonTemplate")
+AcceptTalentsButton:SetSize(115, 40)
+AcceptTalentsButton:SetPoint("BOTTOM", 0, 0) -- Position the button at the top right of the TalentTreeWindow
+AcceptTalentsButton:SetText("a")
+AcceptTalentsButton:Show()
 
-resetButton:SetScript("OnClick", function()
-    print("tried")
+AcceptTalentsButton:RegisterForClicks("AnyDown");
+AcceptTalentsButton:SetScript("OnMouseDown" , function()
+    local out = ""
+
+    -- tree metadata: type spec class
+    out = out..string.sub(alpha,TalentTree.FORGE_SELECTED_TAB.TalentType+1,TalentTree.FORGE_SELECTED_TAB.TalentType+1)
+    out = out..string.sub(alpha,TalentTree.FORGE_SELECTED_TAB.Id,TalentTree.FORGE_SELECTED_TAB.Id)
+    out = out..string.sub(alpha,GetClassId(UnitClass("player")),GetClassId(UnitClass("player")))
+
+    -- TODO: CLASS TREE
+
+
+    -- Spec tree last
+    for _, rank in ipairs(TreeCache.Spells[TalentTree.FORGE_SELECTED_TAB.Id]) do
+        out = out..string.sub(alpha,rank+1,rank+1)
+    end    
+    
+    print("Talent string to send: "..out)
+    PushForgeMessage(ForgeTopic.LEARN_TALENT, out);
 end)

@@ -418,13 +418,7 @@ DeserializerDefinitions = {
         FIELDS = {
             DELIMITER = "^",
             FIELDS = {{
-                NAME = "TabId"
-            }, {
-                NAME = "PointType"
-            }, {
-                    NAME = "Talents",
-                    OBJECT = "*",
-                    DICT = "~" -- will build dict of basic KVP without fields defined.
+                NAME = "Talents"
             }}
         }
     },   
@@ -524,6 +518,10 @@ DeserializerDefinitions = {
                     },
                     {
                         NAME = "nodeType",
+                        TYPE = FieldType.NUMBER
+                    },
+                    {
+                        NAME = "nodeIndex",
                         TYPE = FieldType.NUMBER
                     },
                     {
