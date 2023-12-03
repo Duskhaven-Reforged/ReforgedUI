@@ -455,7 +455,6 @@ function ShowTypeTalentPoint(CharacterPointType, tabId)
         -- if (CharacterPointType == "0") then
 		--   TalentTreeWindow.PointsBottomLeft.Points:SetText(className.." points available\n"..TreeCache.Points["7"])
         -- end
-		--TalentTreeWindow.PointsBottomRight.Points:SetText(tab.Nametalent.AvailablePoints .. " " .. str .. " points")
 end
 
 function GetPointSpendByTabId(id)

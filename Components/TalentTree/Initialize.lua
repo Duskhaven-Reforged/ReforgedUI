@@ -165,39 +165,13 @@ SubscribeToForgeTopic(ForgeTopic.GET_TALENTS, function(msg)
         local specString = string.sub(msg, classBlock+1, specBlock)
         for i = 1, specTreeLen, 1 do
             local rank = string.find(alpha, string.sub(specString, i, i)) - 1
-            print("rank: "..rank)
-            --TreeCache.Spells[tostring(spec)][nodeInd]
-            --TreeCache.Points[tostring(type-1)] = TreeCache.Points[tostring(type-1)] - 
-            --print(TreeCache.Spells[tostring(spec)][nodeInd])
+            TreeCache.Spells[tostring(spec)][nodeInd] = rank
+            TreeCache.Points[tostring(type-1)] = TreeCache.Points[tostring(type-1)] - rank
             nodeInd = nodeInd + 1
         end
 
-        -- if msg then
-        --     for spellId, rank in pairs(msg) do
-        --         if not TalentTree.FORGE_TALENTS[talent.TabId] then
-        --             TalentTree.FORGE_TALENTS[talent.TabId] = {};
-        --         end
-        --         TalentTree.FORGE_TALENTS[talent.TabId][spellId] = rank;
-        --     end
-    		
-        --     UpdateTalent(talent.TabId, msg)
-        -- end
-
-
-        -- if #talents > 0 and talents[1].TabId then
-        --     onUpdateFrame:SetScript("OnUpdate", function(self, elapsed)
-        --          if TalentTreeWindow and TalentTreeWindow.TabsLeft and TalentTreeWindow.TabsLeft.Spec and talents[1].TabId and TalentTreeWindow.TabsLeft.Spec[talents[1].TabId] and not oneTime then
-    	--             TalentTreeWindow.Container:Show()
-    	--             TalentTreeWindow.GridTalent:Show()
-        --             self:SetScript("OnUpdate", nil)
-        --         else
-        --             return
-        --         end
-        --     end)
-        -- else
-        -- end
-
         TreeCache.PreviousString[type] = msg
+        SelectTab(tostring(spec))
     end
 end)
 
