@@ -171,7 +171,6 @@ SubscribeToForgeTopic(ForgeTopic.GET_TALENTS, function(msg)
         end
 
         TreeCache.PreviousString[type] = msg
-        SelectTab(tostring(spec))
     end
 end)
 
