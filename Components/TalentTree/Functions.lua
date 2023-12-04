@@ -841,30 +841,13 @@ function InitializeGridForTalent(tabId)
         for j = 0, totalGridCols - 1 do
             -- Ajustando a lógica de determinação da árvore
             local tree;
-            if j < MaxColumns then
-                tree = 1;
-            else
-                tree = 2;
-            end
 
-            local basePosX, basePosY;
-            if tree == 1 then
-                basePosX, basePosY = -600, -300;
-            else
-                -- Posição base ajustada para árvore 2
-                basePosX, basePosY = 50, -300; -- Ajuste conforme necessário
-            end
+            local basePosX, basePosY = -600, -300;
 
             -- Posições de X e Y
             local posX, posY;
-            if tree == 1 then
-                posX = basePosX + (j * (visualizationSize + spaceBetweenNodes));
-                posY = basePosY + (i * (visualizationSize + spaceBetweenNodes));
-            else
-                -- Para árvore 2, redefina a contagem da coluna do zero
-                posX = basePosX + ((j - MaxColumns) * (visualizationSize + spaceBetweenNodes));
-                posY = basePosY + (i * (visualizationSize + spaceBetweenNodes));
-            end
+            posX = basePosX + (j * (visualizationSize + spaceBetweenNodes));
+            posY = basePosY + (i * (visualizationSize + spaceBetweenNodes));
 
             if not TalentTreeWindow.GridTalent.Talents[i][j] then
                     TalentTreeWindow.GridTalent.Talents[i][j] = CreateFrame("Button", nil, TalentTreeWindow.GridTalent);
@@ -1014,8 +997,15 @@ function InitializeViewFromGrid(children, spells, tabId, offset)
         local ColumnIndex = tonumber(spell.ColumnIndex);
         local RowIndex = tonumber(spell.RowIndex)-1;
         local NumberOfRanks = tonumber(spell.NumberOfRanks);
-        local frame = children.Talents[RowIndex][ColumnIndex];
 		local tab = FindExistingTab(tabId)
+
+        if tab.Id ~= GetClassTree(UnitClass("player")) then
+            ColumnIndex = ColumnIndex + 11
+            print(ColumnIndex)
+        end
+
+        local frame = children.Talents[RowIndex][ColumnIndex];
+
         if not TreeCache.IndexToFrame[tab.Id][spell.nodeIndex] then
             TreeCache.IndexToFrame[tab.Id][spell.nodeIndex] = { row = RowIndex, col = ColumnIndex }
         end

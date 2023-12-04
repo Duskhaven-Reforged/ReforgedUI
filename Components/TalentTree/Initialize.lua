@@ -41,7 +41,7 @@ function GetClassTree(classString)
     elseif classString == "Warlock" then
         return "46";
     else
-        return 47;
+        return "47";
     end
 end
 
