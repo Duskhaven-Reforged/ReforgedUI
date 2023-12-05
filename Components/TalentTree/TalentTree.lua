@@ -11,7 +11,8 @@ TalentTree = {
     INITIALIZED = false,
     SELECTED_SPEC = nil,
     MaxPoints = {},
-    ClassTree = nil
+    ClassTree = nil,
+    CLASS_TAB = nil
 }
 
 TreeCache = {
@@ -100,6 +101,7 @@ for i, window in ipairs(windows) do
       if ClassSpecWindow:IsVisible() then
 	     ClassSpecWindow:Hide()
 		 TalentTreeWindow:Show()
+         SelectTab(TalentTree.FORGE_SELECTED_TAB)
 		 end
     end)
 

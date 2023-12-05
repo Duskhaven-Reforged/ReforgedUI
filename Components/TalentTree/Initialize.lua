@@ -67,14 +67,12 @@ function GetTalentTreeLayout(msg)
         if tab.TalentType == CharacterPointType.TALENT_SKILL_TREE or tab.TalentType == CharacterPointType.RACIAL_TREE or
             tab.TalentType == CharacterPointType.PRESTIGE_TREE or tab.TalentType == CharacterPointType.SKILL_PAGE then
             table.insert(TalentTree.FORGE_TABS, tab);
-        end
-        if tab.TalentType == CharacterPointType.FORGE_SKILL_TREE then
-            table.insert(TalentTree.FORGE_SPELLS_PAGES, tab);
-        end
-        if tab.TalentType == CharacterPointType.LEVEL_10_TAB then
-            TalentTree.FORGE_SPECS_TAB = tab;
+        elseif tab.TalentType == CharacterPointType.CLASS_TREE then
+            TalentTree.CLASS_TAB = tab;
+            print(dump(TalentTree.CLASS_TAB))
         end
     end
+
     
     table.sort(TalentTree.FORGE_TABS, function(left, right)
         return left.Id < right.Id
@@ -100,7 +98,7 @@ function GetCharacterSpecs(msg)
             table.insert(TalentTree.FORGE_SPEC_SLOTS, spec)
         end
     end
-                        
+
     if TalentTree.INITIALIZED == false then
 
         local firstTab = TalentTree.FORGE_TABS[1];
@@ -110,16 +108,16 @@ function GetCharacterSpecs(msg)
                     firstTab = tab
                 end
             end
-        end         
+        end
+        InitializeGridForTalent(firstTab)
         InitializeTalentLeft();
         InitializeForgePoints();
-        InitializeGridForTalent(firstTab)
-        SelectTab(firstTab);
+
+        SelectTab(firstTab)
     else
         ShowTypeTalentPoint(TalentTree.FORGE_SELECTED_TAB.TalentType, TalentTree.FORGE_SELECTED_TAB.Id)
     end
 
-    TalentTree.INITIALIZED = true;
     PushForgeMessage(ForgeTopic.GET_TALENTS, "-1")
 end
 
@@ -129,6 +127,7 @@ end)
 
 local onUpdateFrame = CreateFrame("Frame")
 SubscribeToForgeTopic(ForgeTopic.GET_TALENTS, function(msg)
+
     local type, _ = string.find(alpha, string.sub(msg, 1, 1))
     local spec, _ = string.find(alpha, string.sub(msg, 2, 2))
     local class, _ = string.find(alpha, string.sub(msg, 3, 3))

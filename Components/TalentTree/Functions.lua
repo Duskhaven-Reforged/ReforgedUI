@@ -97,6 +97,10 @@ end
 
 
 function FindExistingTab(tabId)
+    if tabId == TalentTree.ClassTree then
+        return TalentTree.CLASS_TAB
+    end
+
     for _, tab in ipairs(TalentTree.FORGE_TABS) do
         if tonumber(tab.Id) == tonumber(tabId) then
             return tab;
@@ -388,7 +392,19 @@ function SelectTab(tab)
             TreeCache.IndexToFrame[tab.Id] = {}
         end
         if tab.Talents then
-            InitializeViewFromGrid(TalentTreeWindow.GridTalent, tab.Talents, tab.Id, 392);
+            InitializeViewFromGrid(TalentTreeWindow.GridTalent, tab.Talents, tab.Id);
+            if tab.TalentType == CharacterPointType.TALENT_SKILL_TREE then
+                if not TreeCache.IndexToFrame[TalentTree.ClassTree] then
+                    TreeCache.IndexToFrame[TalentTree.ClassTree] = {}
+                end
+                if not TreeCache.Spells[TalentTree.ClassTree] then
+                    TreeCache.Spells[TalentTree.ClassTree] = {}
+                end
+                if not TreeCache.PrereqUnlocks[TalentTree.ClassTree] then
+                    TreeCache.PrereqUnlocks[TalentTree.ClassTree] = {}
+                end
+                InitializeViewFromGrid(TalentTreeWindow.GridTalent, TalentTree.CLASS_TAB.Talents, TalentTree.ClassTree)
+            end
         end
         TalentTreeWindow.GridTalent:Show();
     else
@@ -454,9 +470,9 @@ function ShowTypeTalentPoint(CharacterPointType, tabId)
 		end
 
         TalentTreeWindow.PointsBottomRight.Points:SetText(tab.Name.." points available\n"..GetPointByCharacterPointType(CharacterPointType))
-        -- if (CharacterPointType == "0") then
-		--   TalentTreeWindow.PointsBottomLeft.Points:SetText(className.." points available\n"..TreeCache.Points["7"])
-        -- end
+        if (CharacterPointType == "0") then
+		  TalentTreeWindow.PointsBottomLeft.Points:SetText(className.." points available\n"..TreeCache.Points["7"])
+        end
 end
 
 function GetPointSpendByTabId(id)
@@ -815,7 +831,7 @@ function InitializeProgressionBar()
 end
 
 --[[Talents HERE]]--
-function InitializeGridForTalent(tabId)
+function InitializeGridForTalent()
     if TalentTreeWindow.GridTalent then
         TalentTreeWindow.GridTalent:Hide();
     end
@@ -990,7 +1006,7 @@ local function AddButtonEvents(button)
 end
 
 
-function InitializeViewFromGrid(children, spells, tabId, offset)
+function InitializeViewFromGrid(children, spells, tabId)
     for index, spell in pairs(spells) do
         local CurrentRank, SpellId, NextSpellId = GetSpellIdAndNextRank(tabId, spell);
         local name, rank, icon, castTime, minRange, maxRange, spellID = GetSpellInfo(spell.SpellId)
@@ -1001,7 +1017,6 @@ function InitializeViewFromGrid(children, spells, tabId, offset)
 
         if tab.Id ~= GetClassTree(UnitClass("player")) then
             ColumnIndex = ColumnIndex + 11
-            print(ColumnIndex)
         end
 
         local frame = children.Talents[RowIndex][ColumnIndex];
