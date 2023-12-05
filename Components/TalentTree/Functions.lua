@@ -896,7 +896,7 @@ function InitializeGridForTalent()
                     TalentTreeWindow.GridTalent.Talents[i][j].RankText:SetPoint("CENTER", 10, 8.5);
 
 					TalentTreeWindow.GridTalent.Talents[i][j].node = {};
-                    TalentTreeWindow.GridTalent.Talents[i][j]:Hide();
+                    --TalentTreeWindow.GridTalent.Talents[i][j]:Hide();
                 end
             end
         end
