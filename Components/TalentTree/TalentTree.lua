@@ -328,7 +328,11 @@ AcceptTalentsButton:SetScript("OnMouseDown" , function()
     out = out..string.sub(alpha,GetClassId(UnitClass("player")),GetClassId(UnitClass("player")))
 
     -- TODO: CLASS TREE
+    for _, rank in ipairs(TreeCache.Spells[TalentTree.ClassTree]) do
+        out = out..string.sub(alpha,rank+1,rank+1)
+    end 
 
+    print(out)
 
     -- Spec tree last
     for _, rank in ipairs(TreeCache.Spells[TalentTree.FORGE_SELECTED_TAB.Id]) do

@@ -69,7 +69,6 @@ function GetTalentTreeLayout(msg)
             table.insert(TalentTree.FORGE_TABS, tab);
         elseif tab.TalentType == CharacterPointType.CLASS_TREE then
             TalentTree.CLASS_TAB = tab;
-            print(dump(TalentTree.CLASS_TAB))
         end
     end
 
@@ -127,7 +126,7 @@ end)
 
 local onUpdateFrame = CreateFrame("Frame")
 SubscribeToForgeTopic(ForgeTopic.GET_TALENTS, function(msg)
-
+    print(msg)
     local type, _ = string.find(alpha, string.sub(msg, 1, 1))
     local spec, _ = string.find(alpha, string.sub(msg, 2, 2))
     local class, _ = string.find(alpha, string.sub(msg, 3, 3))
@@ -148,10 +147,7 @@ SubscribeToForgeTopic(ForgeTopic.GET_TALENTS, function(msg)
             end
 
             local classTreeLen = 0
-            if TreeCache.Spells[TalentTree.ClassTree] and tonumber(type-1 == CharacterPointType.TALENT_SKILL_TREE) then
-                classTreeLen = #TreeCache.Spells[TalentTree.ClassTree]
-                print("Class tree size: "..classTreeLen)
-            end
+            classTreeLen = #TreeCache.Spells[TalentTree.ClassTree]
 
             -- ZERO EVERY STRUCT
             TreeCache.Points[tostring(type-1)] = TalentTree.MaxPoints[tostring(type-1)]
@@ -161,10 +157,22 @@ SubscribeToForgeTopic(ForgeTopic.GET_TALENTS, function(msg)
                 TreeCache.Investments[i] = 0
                 TreeCache.TotalInvests[i] = 0
             end
-            
+
+            local nodeInd = 1
             local classBlock = 3 + classTreeLen
-            if (4 > classBlock) then
+            if (4 >= classBlock) then
                 local classString = string.sub(msg, 4, classBlock)
+                for i = 1, classTreeLen, 1 do
+                    TreeCache.Spells[TalentTree.ClassTree][nodeInd] = 0;
+                    local rank = string.find(alpha, string.sub(classString, i, i)) - 1
+                    for click = 1, rank, 1 do
+                        local location = TreeCache.IndexToFrame[TalentTree.ClassTree][nodeInd]
+                        local frame = TalentTreeWindow.GridTalent.Talents[location.row][location.col]
+                        frame:GetScript("OnUpdate")();
+                        frame:GetScript("OnMouseDown")(frame, 'LeftButton');
+                    end
+                    nodeInd = nodeInd + 1
+                end
             end
 
             local specBlock = classBlock + specTreeLen

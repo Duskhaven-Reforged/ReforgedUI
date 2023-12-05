@@ -412,8 +412,11 @@ function SelectTab(tab)
     end
 	
     ShowTypeTalentPoint(tab.TalentType, tab.Id)
+    if tab.TalentType == CharacterPointType.TALENT_SKILL_TREE then
+        ShowTypeTalentPoint("7", TalentTree.ClassTree)
+    end
 	
-	    if TalentTree.FORGE_SELECTED_TAB then
+    if TalentTree.FORGE_SELECTED_TAB then
         local previousTabId = TalentTree.FORGE_SELECTED_TAB.Id
         if TalentTreeWindow.TabsLeft.Spec[previousTabId] then
             TalentTreeWindow.TabsLeft.Spec[previousTabId]:SetButtonState("NORMAL", 1)
@@ -466,12 +469,13 @@ function ShowTypeTalentPoint(CharacterPointType, tabId)
 	local className, classFilename = UnitClass("player");
         
 		if not tab then
-		return;
+		  return;
 		end
 
-        TalentTreeWindow.PointsBottomRight.Points:SetText(tab.Name.." points available\n"..GetPointByCharacterPointType(CharacterPointType))
-        if (CharacterPointType == "0") then
-		  TalentTreeWindow.PointsBottomLeft.Points:SetText(className.." points available\n"..TreeCache.Points["7"])
+        if (CharacterPointType == CharacterPointType.CLASS_TREE) then
+            TalentTreeWindow.PointsBottomLeft.Points:SetText(className.." points available\n"..TreeCache.Points["7"])
+        else
+            TalentTreeWindow.PointsBottomRight.Points:SetText(tab.Name.." points available\n"..GetPointByCharacterPointType(CharacterPointType))
         end
 end
 
