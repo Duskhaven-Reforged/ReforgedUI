@@ -463,20 +463,20 @@ function GetPointByCharacterPointType(type)
     return TreeCache.Points[type]
 end
 
-function ShowTypeTalentPoint(CharacterPointType, tabId)
-    local talent = GetPointByCharacterPointType(tostring(CharacterPointType));
+function ShowTypeTalentPoint(cpt, tabId)
+    local talent = GetPointByCharacterPointType(tostring(cpt));
 	local tab = FindExistingTab(tabId)
 	local className, classFilename = UnitClass("player");
         
-		if not tab then
-		  return;
-		end
+	if not tab then
+	  return;
+	end
 
-        if (CharacterPointType == CharacterPointType.CLASS_TREE) then
-            TalentTreeWindow.PointsBottomLeft.Points:SetText(className.." points available\n"..TreeCache.Points["7"])
-        else
-            TalentTreeWindow.PointsBottomRight.Points:SetText(tab.Name.." points available\n"..GetPointByCharacterPointType(CharacterPointType))
-        end
+    if (cpt == CharacterPointType.CLASS_TREE) then
+        TalentTreeWindow.PointsBottomLeft.Points:SetText(className.." points available\n"..TreeCache.Points[CharacterPointType.CLASS_TREE])
+    else
+        TalentTreeWindow.PointsBottomRight.Points:SetText(tab.Name.." points available\n"..GetPointByCharacterPointType(cpt))
+    end
 end
 
 function GetPointSpendByTabId(id)
