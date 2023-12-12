@@ -126,7 +126,7 @@ end)
 
 local onUpdateFrame = CreateFrame("Frame")
 SubscribeToForgeTopic(ForgeTopic.GET_TALENTS, function(msg)
-    print(msg)
+    --print(msg)
     local type, _ = string.find(alpha, string.sub(msg, 1, 1))
     local spec, _ = string.find(alpha, string.sub(msg, 2, 2))
     local class, _ = string.find(alpha, string.sub(msg, 3, 3))
@@ -194,6 +194,12 @@ SubscribeToForgeTopic(ForgeTopic.GET_TALENTS, function(msg)
             TreeCache.PreviousString[type] = msg
         end
     end
+end)
+
+SubscribeToForgeTopic(ForgeTopic.ACTIVATE_CLASS_SPEC, function(msg)
+    ClassSpecWindow.Lockout:Hide()
+    TalentTreeWindow:Show()
+    ClassSpecWindow:Hide()
 end)
 
 function GetClassId (classString)
