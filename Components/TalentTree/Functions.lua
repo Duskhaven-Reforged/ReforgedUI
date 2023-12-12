@@ -1043,7 +1043,11 @@ function InitializeViewFromGrid(children, spells, tabId)
 
         SpellCache = {}
         TreeCache.PointsSpent[tabId] = 0
-        TreeCache.Investments[spell.TabPointReq] = 0
+        if not TreeCache.Investments[tabId] then
+            TreeCache.Investments[tabId] = {}
+        end
+
+        TreeCache.Investments[tabId][spell.TabPointReq] = 0
         TreeCache.TotalInvests[spell.TabPointReq] = 0
 
         local Choice_Talents = CreateFrame("Frame", "Choice_Talents", TalentFrame)
@@ -1140,11 +1144,12 @@ frame:SetScript("OnMouseDown", function(self, button)
     if spell.nodeType < 2 then
         local spellRank = TreeCache.Spells[tabId][spell.nodeIndex];
         local change = false
+
         if (button == 'LeftButton' and frame.CanUprank) then
             if TreeCache.Spells[tabId][spell.nodeIndex] < NumberOfRanks then
                 TreeCache.Spells[tabId][spell.nodeIndex] = spellRank + 1
                 TreeCache.PointsSpent[tab.Id] = TreeCache.PointsSpent[tab.Id] + spell.RankCost
-                TreeCache.Investments[spell.TabPointReq] = TreeCache.Investments[spell.TabPointReq] + spell.RankCost
+                TreeCache.Investments[tab.Id][spell.TabPointReq] = TreeCache.Investments[tab.Id][spell.TabPointReq] + spell.RankCost
 
                 --print("Spell IDs in Cache:", table.concat(spellIds, ", "))  -- Imprime todos os IDs em uma linha
                 CurrentRank = TreeCache.Spells[tabId][spell.nodeIndex]
@@ -1153,7 +1158,7 @@ frame:SetScript("OnMouseDown", function(self, button)
                 TreeCache.PrereqRev[spell.SpellId] = {}
                 if #spell.Prereqs > 0 then
                     for _, req in ipairs(spell.Prereqs) do
-                        if TreeCache.PrereqRev[req.Talent] then
+                        if TreeCache.PrereqRev[req.Talent] and tonumber(req.RequiredRank) <= TreeCache.PrereqUnlocks[req.TalentTabId][req.Talent] then
                             TreeCache.PrereqRev[req.Talent][spell.SpellId] = true
                         end
                     end
@@ -1168,18 +1173,15 @@ frame:SetScript("OnMouseDown", function(self, button)
                 TreeCache.Spells[tabId][spell.nodeIndex] = spellRank - 1
 
                 TreeCache.PointsSpent[tab.Id] = TreeCache.PointsSpent[tab.Id] - spell.RankCost
-                TreeCache.Investments[spell.TabPointReq] = TreeCache.Investments[spell.TabPointReq] - spell.RankCost
+                TreeCache.Investments[tab.Id][spell.TabPointReq] = TreeCache.Investments[tab.Id][spell.TabPointReq] - spell.RankCost
 
                 CurrentRank = TreeCache.Spells[tabId][spell.nodeIndex]
+                TreeCache.PrereqUnlocks[tabId][spell.SpellId] = CurrentRank
 
-                if NumberOfRanks > CurrentRank then
-                    TreeCache.PrereqUnlocks[tabId][spell.SpellId] = nil
-                    TreeCache.PrereqRev[spell.SpellId] = nil
-                    if #spell.Prereqs > 0 then
-                        for _, req in ipairs(spell.Prereqs) do
-                            if TreeCache.PrereqRev[req.Talent] then
-                                TreeCache.PrereqRev[req.Talent][spell.SpellId] = nil
-                            end
+                if #spell.Prereqs > 0 then
+                    for _, req in ipairs(spell.Prereqs) do
+                        if TreeCache.PrereqRev[req.Talent] and TreeCache.Spells[tabId][spell.nodeIndex] < 1 then
+                            TreeCache.PrereqRev[req.Talent][spell.SpellId] = nil
                         end
                     end
                 end
@@ -1193,7 +1195,7 @@ frame:SetScript("OnMouseDown", function(self, button)
         if change then
             local cumulative = 0
             for i = 0, 50, 5 do
-                local value = TreeCache.Investments[i]
+                local value = TreeCache.Investments[tab.Id][i]
                 if value then
                     cumulative = cumulative + value
                     TreeCache.TotalInvests[i] = cumulative
@@ -1206,7 +1208,7 @@ frame:SetScript("OnMouseDown", function(self, button)
             ShowTypeTalentPoint(tab.TalentType, tabId)
         end
     end
-    --print(dump(TreeCache.Investments))
+    print(dump(TreeCache.Investments))
     --print(dump(TreeCache.PrereqRev))
     --print(dump(TreeCache.PrereqUnlocks))
     -- Aqui você pode adicionar qualquer outra lógica necessária para outros tipos de nodeType
@@ -1225,8 +1227,8 @@ frame:SetScript("OnUpdate", function()
             local nextReq = spell.TabPointReq + 5
             local spentAfter = {}
             for i = nextReq, 50, 5 do
-                if TreeCache.Investments[i] then
-                    if TreeCache.Investments[i] > 0 then
+                if TreeCache.Investments[tab.Id][i] then
+                    if TreeCache.Investments[tab.Id][i] > 0 then
                         table.insert(spentAfter, i);
                     end
                 end

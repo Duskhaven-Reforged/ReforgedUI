@@ -154,7 +154,8 @@ SubscribeToForgeTopic(ForgeTopic.GET_TALENTS, function(msg)
             TreeCache.PointsSpent[tostring(spec)] = 0
 
             for i = 0, 50, 5 do
-                TreeCache.Investments[i] = 0
+                TreeCache.Investments[tostring(spec)][i] = 0
+                TreeCache.Investments[TalentTree.ClassTree][i] = 0
                 TreeCache.TotalInvests[i] = 0
             end
 
