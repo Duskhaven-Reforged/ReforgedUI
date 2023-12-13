@@ -330,15 +330,13 @@ AcceptTalentsButton:SetScript("OnMouseDown" , function()
     -- TODO: CLASS TREE
     for _, rank in ipairs(TreeCache.Spells[TalentTree.ClassTree]) do
         out = out..string.sub(alpha,rank+1,rank+1)
-    end 
-
-    print(out)
+    end
 
     -- Spec tree last
     for _, rank in ipairs(TreeCache.Spells[TalentTree.FORGE_SELECTED_TAB.Id]) do
         out = out..string.sub(alpha,rank+1,rank+1)
     end    
     
-    print("Talent string to send: "..out)
+    --print("Talent string to send: "..out)
     PushForgeMessage(ForgeTopic.LEARN_TALENT, out);
 end)

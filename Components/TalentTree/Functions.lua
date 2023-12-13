@@ -1208,7 +1208,7 @@ frame:SetScript("OnMouseDown", function(self, button)
             ShowTypeTalentPoint(tab.TalentType, tabId)
         end
     end
-    print(dump(TreeCache.Investments))
+    --print(dump(TreeCache.Investments))
     --print(dump(TreeCache.PrereqRev))
     --print(dump(TreeCache.PrereqUnlocks))
     -- Aqui você pode adicionar qualquer outra lógica necessária para outros tipos de nodeType
