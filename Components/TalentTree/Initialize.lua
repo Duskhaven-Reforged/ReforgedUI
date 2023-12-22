@@ -96,6 +96,8 @@ function GetCharacterSpecs(msg)
         else
             table.insert(TalentTree.FORGE_SPEC_SLOTS, spec)
         end
+		
+		--SelectTab(SELECTED_SPEC)
     end
 
     if TalentTree.INITIALIZED == false then
@@ -111,8 +113,8 @@ function GetCharacterSpecs(msg)
         InitializeGridForTalent(firstTab)
         InitializeTalentLeft();
         InitializeForgePoints();
-
-        SelectTab(firstTab)
+        	
+        SelectTab(SELECTED_SPEC)
     else
         ShowTypeTalentPoint(TalentTree.FORGE_SELECTED_TAB.TalentType, TalentTree.FORGE_SELECTED_TAB.Id)
     end

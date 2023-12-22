@@ -196,10 +196,10 @@ SpecTitleText:SetText("Specializations")
 local windows = {TalentTreeWindow, ClassSpecWindow}
 
 for i, window in ipairs(windows) do
-local closeButton = CreateFrame("Button", "ClosePanel" .. i, window, "UIPanelCloseButton")
-closeButton:SetSize(40, 40)  -- Tamanho do botão
+local closeButton = CreateFrame("Button", "CloseTalentUI" .. i, window, "UIPanelCloseButton")
+closeButton:SetSize(40, 40) 
+closeButton:SetFrameLevel(100)
 
--- Configurando o script de clique para fechar o frame
 closeButton:SetScript("OnClick", function()
     window:Hide()
 end)
@@ -239,7 +239,7 @@ TalentTreeWindow.Container:SetFrameStrata("MEDIUM");
 TalentTreeWindow.Container.Background = TalentTreeWindow.Container:CreateTexture(nil, "ARTWORK")
 TalentTreeWindow.Container.Background:SetTexCoord(0.16, 1, 0.0625, 0.5625)
 TalentTreeWindow.Container.Background:SetPoint("CENTER", -12, 20)
-TalentTreeWindow.Container.Background:SetSize(TalentTreeWindow:GetWidth() * 1.47, TalentTreeWindow:GetHeight() * 0.925)
+TalentTreeWindow.Container.Background:SetSize(TalentTreeWindow:GetWidth() * 1.47, TalentTreeWindow:GetHeight() * 0.945)
 
 TalentTreeWindow.Container.CloseButtonForgeSkills = CreateFrame("Button",
     TalentTreeWindow.Container.CloseButtonForgeSkills, TalentTreeWindow.Container)

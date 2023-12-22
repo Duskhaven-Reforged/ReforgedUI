@@ -82,14 +82,17 @@ local function UpdateActivateSpecButton(tab)
         button:SetPushedTexture(nil)
         button:SetHighlightTexture(nil)
         button:GetFontString():SetTextColor(0, 1, 0)
+		button:SetButtonState("PUSHED")
     else
         button:SetText("Activate")
         button:SetNormalFontObject(GameFontNormalSmall)
+		button:SetButtonState("NORMAL")
 
         local textures = originalButtonTextures[tab.Id]
         UpdateButtonTexture(button, "normal", textures.normal)
         UpdateButtonTexture(button, "pushed", textures.pushed)
         UpdateButtonTexture(button, "highlight", textures.highlight)
+
 
         button:GetFontString():SetTextColor(1, 1, 1)
     end
@@ -372,6 +375,7 @@ end
 local lastPushedTabId = nil
 function SelectTab(tab)
 	TalentTree.FORGE_SELECTED_TAB = tab;	
+
 					
     -- if tab.TalentType == CharacterPointType.SKILL_PAGE then
     --     ShowTypeTalentPoint(CharacterPointType.FORGE_SKILL_TREE, "forge", tab.Id)
@@ -455,6 +459,7 @@ function SelectTab(tab)
 	 for _, tab in ipairs(TalentTree.FORGE_TABS) do
         UpdateActivateSpecButton(tab)
      end
+	 
 	
 end
 
@@ -690,10 +695,15 @@ function InitializeTalentLeft()
 		TalentTreeWindow.TabsLeft.Spec[tab.Id].ActivateSpecBtn:SetText("Activate")
 		TalentTreeWindow.TabsLeft.Spec[tab.Id].ActivateSpecBtn:SetFrameLevel(clickInterceptor:GetFrameLevel() + 1)
 		
-        TalentTreeWindow.TabsLeft.Spec[tab.Id].ActivateSpecBtn:SetScript("OnClick", function()
+		local ButtonState = TalentTreeWindow.TabsLeft.Spec[tab.Id].ActivateSpecBtn:GetButtonState()		
+        TalentTreeWindow.TabsLeft.Spec[tab.Id].ActivateSpecBtn:SetScript("OnClick", function(self)
           currentTab = tab
           ActivateSpec(currentTab.Id)
+		  
+		  if ButtonState == "NORMAL" then
 		  ClassSpecWindow.Lockout:Show()
+		  end
+		  
         end)
 
 		
@@ -714,10 +724,10 @@ function InitializeTalentLeft()
                 if unitID == "player" then
                   if event == "UNIT_SPELLCAST_SUCCEEDED" and spellName == "Activate Primary Spec" and currentTab then
                     SelectTab(currentTab)
-					ClassSpecWindow.Lockout:Hide()
                     currentTab = nil
                   elseif event == "UNIT_SPELLCAST_INTERRUPTED" and currentTab then
 				  ClassSpecWindow.Lockout:Hide()
+				  TalentTreeWindow.TabsLeft.Spec[tab.Id].ActivateSpecBtn:SetButtonState("NORMAL")
                     currentTab = nil
                   end
                 end
@@ -894,13 +904,12 @@ function InitializeGridForTalent()
                     TalentTreeWindow.GridTalent.Talents[i][j].Ranks:SetFrameLevel(13);
                     TalentTreeWindow.GridTalent.Talents[i][j].Ranks:SetPoint("BOTTOM", 0, -12);
                     TalentTreeWindow.GridTalent.Talents[i][j].Ranks:SetSize(32, 26);
-                    TalentTreeWindow.GridTalent.Talents[i][j].Ranks:SetBackdrop({ bgFile = "caminho/para/sua/imagem.png" });  -- Substitua com o caminho correto
                     TalentTreeWindow.GridTalent.Talents[i][j].RankText = TalentTreeWindow.GridTalent.Talents[i][j].Ranks:CreateFontString(nil, "OVERLAY", "GameFontNormal");
                     TalentTreeWindow.GridTalent.Talents[i][j].RankText:SetFont("Fonts\\FRIZQT__.TTF", 13, "OUTLINE");
                     TalentTreeWindow.GridTalent.Talents[i][j].RankText:SetPoint("CENTER", 10, 8.5);
 
 					TalentTreeWindow.GridTalent.Talents[i][j].node = {};
-                    --TalentTreeWindow.GridTalent.Talents[i][j]:Hide();
+                    TalentTreeWindow.GridTalent.Talents[i][j]:Hide();
                 end
             end
         end
@@ -1051,7 +1060,7 @@ function InitializeViewFromGrid(children, spells, tabId)
         TreeCache.TotalInvests[spell.TabPointReq] = 0
 
         local Choice_Talents = CreateFrame("Frame", "Choice_Talents", TalentFrame)
-              Choice_Talents:SetSize(200, 100)  -- Defina o tamanho conforme necessário
+              Choice_Talents:SetSize(200, 100)  
               Choice_Talents:SetPoint("CENTER")
               Choice_Talents:Hide()
 			

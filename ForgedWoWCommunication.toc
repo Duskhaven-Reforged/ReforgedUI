@@ -5,6 +5,7 @@
 
 ForgeConstants.lua
 ForgeConnection.lua
+PowerType.lua
 
 Components\TalentTree\Constants.lua
 Components\TalentTree\TalentTree.lua
@@ -19,3 +20,4 @@ Components\Tooltips\spells.lua
 Core\UIFixes.lua
 
 initializeMod.lua
+
