@@ -280,15 +280,12 @@ StaticPopupDialogs["CONFIRM_TALENT_WIPE"] = {
     OnAccept = function()
         local playerLevel = UnitLevel("player") -- Get the player's level
         if playerLevel >= 10 then
-            PushForgeMessage(ForgeTopic.UNLEARN_TALENT, "-1;0")
-            -- TalentTree.FORGE_SELECTED_TAB.Id;-1
+            RevertAllTalents()
             DEFAULT_CHAT_FRAME:AddMessage("Your talents have been reset.", 1, 1, 0) -- Sends a yellow message
-            local talent = GetPointByCharacterPointType(tostring(CharacterPointType.TALENT_SKILL_TREE), true)
-            TalentTreeWindow.PointsBottomLeft.Points:SetText(talent.AvailablePoints .. " talent points")
         else
             DEFAULT_CHAT_FRAME:AddMessage("You must be at least level 10 to reset talents.", 1, 0, 0) -- Sends a red error message
         end
-        --SelectTab(TalentTree.FORGE_TABS[3]);
+        StaticPopup_Hide("CONFIRM_TALENT_WIPE")
     end,
     timeout = 0,
     whileDead = true,

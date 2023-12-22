@@ -23,31 +23,33 @@ end
 
 function GetClassTree(classString)
     if classString == "Warrior" then
-        return "38";
+        return "33";
     elseif classString == "Paladin" then
-        return "39";
+        return "34";
     elseif classString == "Hunter" then
-        return "40";
+        return "35";
     elseif classString == "Rogue" then
-        return "41";
+        return "36";
     elseif classString == "Priest" then
-        return "42";
+        return "37";
     elseif classString == "Death Knight" then
-        return "43";
+        return "38";
     elseif classString == "Shaman" then
-        return "44";
+        return "39";
     elseif classString == "Mage" then
-        return "45";
+        return "40";
     elseif classString == "Warlock" then
-        return "46";
+        return "41";
     else
-        return "47";
+        return "42";
     end
 end
 
 function InitializeTalentTree()
     TalentTree.ClassTree = GetClassTree(UnitClass("player"))
     --InitializeGridForForgeSkills();
+
+    InitializeGridForTalent()
     FirstRankToolTip = CreateFrame("GameTooltip", "firstRankToolTip", WorldFrame, "GameTooltipTemplate");
     SecondRankToolTip = CreateFrame("GameTooltip", "secondRankToolTip", WorldFrame, "GameTooltipTemplate");
     PushForgeMessage(ForgeTopic.TalentTree_LAYOUT, "-1")
@@ -57,12 +59,11 @@ function InitializeTalentTree()
     SubscribeToForgeTopic(ForgeTopic.GET_CHARACTER_SPECS, function(msg)
         GetCharacterSpecs(msg);
     end);
-
 end
-
 
 function GetTalentTreeLayout(msg)
     local listOfObjects = DeserializeMessage(DeserializerDefinitions.TalentTree_LAYOUT, msg);
+    --print(msg)
     for i, tab in ipairs(listOfObjects) do
         if tab.TalentType == CharacterPointType.TALENT_SKILL_TREE or tab.TalentType == CharacterPointType.RACIAL_TREE or
             tab.TalentType == CharacterPointType.PRESTIGE_TREE or tab.TalentType == CharacterPointType.SKILL_PAGE then
@@ -71,7 +72,6 @@ function GetTalentTreeLayout(msg)
             TalentTree.CLASS_TAB = tab;
         end
     end
-
     
     table.sort(TalentTree.FORGE_TABS, function(left, right)
         return left.Id < right.Id
@@ -81,13 +81,12 @@ function GetTalentTreeLayout(msg)
     -- UpdateTalentCurrentView();
 end
 
-
 function GetCharacterSpecs(msg)
     local listOfObjects = DeserializeMessage(DeserializerDefinitions.GET_CHARACTER_SPECS, msg);
     for i, spec in ipairs(listOfObjects) do
         if spec.Active == "1" then
             SELECTED_SPEC = spec.CharacterSpecTabId
-            FORGE_ACTIVE_SPEC = spec;
+            TalentTree.FORGE_ACTIVE_SPEC = spec;
 
             for _, pointStruct in ipairs(spec.TalentPoints) do
                 TreeCache.Points[pointStruct.CharacterPointType] = pointStruct.AvailablePoints
@@ -96,12 +95,14 @@ function GetCharacterSpecs(msg)
         else
             table.insert(TalentTree.FORGE_SPEC_SLOTS, spec)
         end
-		
-		--SelectTab(SELECTED_SPEC)
+        
     end
 
-    if TalentTree.INITIALIZED == false then
-
+    if TalentTree.INITIALIZED and TalentTree.FORGE_SELECTED_TAB then
+        ShowTypeTalentPoint(TalentTree.FORGE_SELECTED_TAB.TalentType, TalentTree.FORGE_SELECTED_TAB.Id)
+    else
+        InitializeTalentLeft();
+        InitializeForgePoints();
         local firstTab = TalentTree.FORGE_TABS[1];
         if SELECTED_SPEC then
             for i, tab in ipairs(TalentTree.FORGE_TABS) do
@@ -110,16 +111,11 @@ function GetCharacterSpecs(msg)
                 end
             end
         end
-        InitializeGridForTalent(firstTab)
-        InitializeTalentLeft();
-        InitializeForgePoints();
-        	
-        SelectTab(SELECTED_SPEC)
-    else
-        ShowTypeTalentPoint(TalentTree.FORGE_SELECTED_TAB.TalentType, TalentTree.FORGE_SELECTED_TAB.Id)
-    end
 
-    PushForgeMessage(ForgeTopic.GET_TALENTS, "-1")
+        SelectTab(firstTab)
+    end
+    TalentTree.INITIALIZED = true
+    PushForgeMessage(ForgeTopic.GET_TALENTS, "-1");
 end
 
 SubscribeToForgeTopic(ForgeTopic.LEARN_TALENT_ERROR, function(msg)
@@ -128,12 +124,12 @@ end)
 
 local onUpdateFrame = CreateFrame("Frame")
 SubscribeToForgeTopic(ForgeTopic.GET_TALENTS, function(msg)
-    --print(msg)
     local type, _ = string.find(alpha, string.sub(msg, 1, 1))
     local spec, _ = string.find(alpha, string.sub(msg, 2, 2))
     local class, _ = string.find(alpha, string.sub(msg, 3, 3))
+    --print(msg)
+    if type-1 == tonumber(CharacterPointType.TALENT_SKILL_TREE) and string.len(msg) > 3 then
 
-    if type-1 == tonumber(CharacterPointType.TALENT_SKILL_TREE) then
         if not TreeCache.PreviousString[type] then
             TreeCache.PreviousString[type] = nil
         end
@@ -160,6 +156,8 @@ SubscribeToForgeTopic(ForgeTopic.GET_TALENTS, function(msg)
                 TreeCache.Investments[TalentTree.ClassTree][i] = 0
                 TreeCache.TotalInvests[i] = 0
             end
+
+            SelectTab(TalentTree.FORGE_TABS[spec])
 
             local nodeInd = 1
             local classBlock = 3 + classTreeLen
@@ -197,6 +195,37 @@ SubscribeToForgeTopic(ForgeTopic.GET_TALENTS, function(msg)
         end
     end
 end)
+
+function RevertAllTalents ()
+    -- only here to make sure no one presses anything during (somehow)
+    TalentTreeWindow:Hide()
+    ClassSpecWindow:Show()
+    ClassSpecWindow.Lockout:Show()
+
+    for index, rank in ipairs(TreeCache.Spells[tostring(SELECTED_SPEC)]) do
+        if rank > 0 then
+            local location = TreeCache.IndexToFrame[tostring(SELECTED_SPEC)][index]
+            local frame = TalentTreeWindow.GridTalent.Talents[location.row][location.col]
+            frame:GetScript("OnUpdate")();
+            frame:GetScript("OnMouseDown")(frame, 'RightButton');
+        end
+    end
+
+    for index, rank in ipairs(TreeCache.Spells[TalentTree.ClassTree]) do
+        if rank > 0 then
+            for i = 1, rank, 1 do
+                local location = TreeCache.IndexToFrame[TalentTree.ClassTree][index]
+                local frame = TalentTreeWindow.GridTalent.Talents[location.row][location.col]
+                frame:GetScript("OnUpdate")();
+                frame:GetScript("OnMouseDown")(frame, 'RightButton');
+            end
+        end
+    end
+
+    ClassSpecWindow.Lockout:Hide()
+    TalentTreeWindow:Show()
+    ClassSpecWindow:Hide()
+end
 
 SubscribeToForgeTopic(ForgeTopic.ACTIVATE_CLASS_SPEC, function(msg)
     ClassSpecWindow.Lockout:Hide()

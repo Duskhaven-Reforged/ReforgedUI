@@ -374,16 +374,14 @@ end
 
 local lastPushedTabId = nil
 function SelectTab(tab)
-	TalentTree.FORGE_SELECTED_TAB = tab;	
+    TalentTree.FORGE_SELECTED_TAB = tab;    
 
-					
     -- if tab.TalentType == CharacterPointType.SKILL_PAGE then
     --     ShowTypeTalentPoint(CharacterPointType.FORGE_SKILL_TREE, "forge", tab.Id)
     --     TalentTreeWindow.SpellBook:Show();
     -- else
     --     TalentTreeWindow.SpellBook:Hide();
     -- end
-	
     if tab.TalentType == CharacterPointType.RACIAL_TREE or tab.TalentType == CharacterPointType.TALENT_SKILL_TREE or
         tab.TalentType == CharacterPointType.PRESTIGE_TREE then
         if not TreeCache.Spells[tab.Id] then
@@ -395,6 +393,7 @@ function SelectTab(tab)
         if not TreeCache.IndexToFrame[tab.Id] then
             TreeCache.IndexToFrame[tab.Id] = {}
         end
+        InitializeGridForTalent();
         if tab.Talents then
             InitializeViewFromGrid(TalentTreeWindow.GridTalent, tab.Talents, tab.Id);
             if tab.TalentType == CharacterPointType.TALENT_SKILL_TREE then
@@ -414,12 +413,11 @@ function SelectTab(tab)
     else
         TalentTreeWindow.GridTalent:Hide();
     end
-	
     ShowTypeTalentPoint(tab.TalentType, tab.Id)
     if tab.TalentType == CharacterPointType.TALENT_SKILL_TREE then
         ShowTypeTalentPoint("7", TalentTree.ClassTree)
     end
-	
+    
     if TalentTree.FORGE_SELECTED_TAB then
         local previousTabId = TalentTree.FORGE_SELECTED_TAB.Id
         if TalentTreeWindow.TabsLeft.Spec[previousTabId] then
@@ -433,36 +431,35 @@ function SelectTab(tab)
         end
     end
 
-	
     if lastPushedTabId and TalentTreeWindow.TabsLeft.Spec[lastPushedTabId] then
         TalentTreeWindow.TabsLeft.Spec[lastPushedTabId]:SetButtonState("NORMAL", 1)
-	   local tabIndex = findTabIndexById(lastPushedTabId)
+        local tabIndex = findTabIndexById(lastPushedTabId)
         if tabIndex then
             local backgroundPath = "Interface\\AddOns\\ForgedWoWCommunication\\UI\\"..TalentTree.FORGE_TABS[tabIndex].Background
             TalentTreeWindow.Container.Background:SetTexture(backgroundPath)
         end
     end
 
-    if TalentTreeWindow.TabsLeft.Spec[tab] then
-        TalentTreeWindow.TabsLeft.Spec[tab]:SetButtonState("PUSHED", 1)
-        lastPushedTabId = tab
+    if TalentTreeWindow.TabsLeft.Spec[tab.Id] then
+        TalentTreeWindow.TabsLeft.Spec[tab.Id]:SetButtonState("PUSHED", 1)
+        lastPushedTabId = tab.Id
 
         -- Atualize o fundo e a grade de talentos para o tab selecionado
-        local tabIndex = findTabIndexById(tab)
+        local tabIndex = findTabIndexById(tab.Id)
         if tabIndex then
             local backgroundPath = "Interface\\AddOns\\ForgedWoWCommunication\\UI\\"..TalentTree.FORGE_TABS[tabIndex].Background
             TalentTreeWindow.Container.Background:SetTexture(backgroundPath)
         end
 
     end
-	
-	 for _, tab in ipairs(TalentTree.FORGE_TABS) do
+    
+     for _, tab in ipairs(TalentTree.FORGE_TABS) do
         UpdateActivateSpecButton(tab)
      end
-	 
-	
-end
 
+    TalentTreeWindow:Show()
+    ClassSpecWindow:Hide()
+end
 	 
 function GetPointByCharacterPointType(type)
     return TreeCache.Points[type]
@@ -485,7 +482,7 @@ function ShowTypeTalentPoint(cpt, tabId)
 end
 
 function GetPointSpendByTabId(id)
-    for tabId, points in pairs(FORGE_ACTIVE_SPEC.PointsSpent) do
+    for tabId, points in pairs(TalentTree.FORGE_ACTIVE_SPEC.PointsSpent) do
         if tabId == id then
             return points;
         end
@@ -1018,22 +1015,25 @@ local function AddButtonEvents(button)
     end)
 end
 
-
 function InitializeViewFromGrid(children, spells, tabId)
+    if TalentTreeWindow.GridTalent then
+        TalentTreeWindow.GridTalent:Hide();
+    end
+
     for index, spell in pairs(spells) do
         local CurrentRank, SpellId, NextSpellId = GetSpellIdAndNextRank(tabId, spell);
         local name, rank, icon, castTime, minRange, maxRange, spellID = GetSpellInfo(spell.SpellId)
         local ColumnIndex = tonumber(spell.ColumnIndex);
         local RowIndex = tonumber(spell.RowIndex)-1;
         local NumberOfRanks = tonumber(spell.NumberOfRanks);
-		local tab = FindExistingTab(tabId)
+        local tab = FindExistingTab(tabId)
 
         if tab.Id ~= GetClassTree(UnitClass("player")) then
             ColumnIndex = ColumnIndex + 11
         end
 
         local frame = children.Talents[RowIndex][ColumnIndex];
-
+    
         if not TreeCache.IndexToFrame[tab.Id][spell.nodeIndex] then
             TreeCache.IndexToFrame[tab.Id][spell.nodeIndex] = { row = RowIndex, col = ColumnIndex }
         end
@@ -1063,7 +1063,7 @@ function InitializeViewFromGrid(children, spells, tabId)
               Choice_Talents:SetSize(200, 100)  
               Choice_Talents:SetPoint("CENTER")
               Choice_Talents:Hide()
-			
+            
         if spell.Prereqs then
             InitializePreReqAndDrawNodes(spells, spell, children.Talents, children, offset, CurrentRank)
         end
@@ -1077,7 +1077,7 @@ function InitializeViewFromGrid(children, spells, tabId)
 
     frame:SetScript("OnEnter", function()
 
-         if spell.nodeType <= 1 then			
+         if spell.nodeType <= 1 then            
             CreateTooltip(spell, SpellId, NextSpellId, frame, CurrentRank)
             frame.IsTooltipActive = true
          end
@@ -1100,20 +1100,20 @@ function InitializeViewFromGrid(children, spells, tabId)
 
                 local texture = button:CreateTexture(nil, "BACKGROUND")
                       texture:SetAllPoints(button)
-		              button.texture = texture
-				
-		        local Bordertexture = button:CreateTexture(nil, "ARTWORK")
+                      button.texture = texture
+                
+                local Bordertexture = button:CreateTexture(nil, "ARTWORK")
                       Bordertexture:SetPoint("CENTER", 0, 2)
-		              Bordertexture:SetSize(button:GetWidth() * 1.7, button:GetHeight() * 1.7)
+                      Bordertexture:SetSize(button:GetWidth() * 1.7, button:GetHeight() * 1.7)
                       button.textureBorder = Bordertexture
-		              Bordertexture:SetTexture("Interface\\AddOns\\ForgedWoWCommunication\\UI\\Talents_DF.blp") 
-		              Bordertexture:SetTexCoord(0.5, 0.5625, 0.125, 0.1875)
-		              Bordertexture:SetVertexColor(1, 1, 0, 1)
+                      Bordertexture:SetTexture("Interface\\AddOns\\ForgedWoWCommunication\\UI\\Talents_DF.blp") 
+                      Bordertexture:SetTexCoord(0.5, 0.5625, 0.125, 0.1875)
+                      Bordertexture:SetVertexColor(1, 1, 0, 1)
         end
 
     local spellName, _, spellIcon = GetSpellInfo(choiceSpellId)
     --button.texture:SetTexture(spellIcon)
-	SetPortraitToTexture(button.texture, spellIcon)
+    SetPortraitToTexture(button.texture, spellIcon)
     button:SetPoint("CENTER", Choice_Talents, "CENTER", ((i - 1) * 60) - (30 * (#spell.Choices - 1)), 0)
     button:Show()
 
@@ -1126,7 +1126,7 @@ function InitializeViewFromGrid(children, spells, tabId)
     button:SetScript("OnLeave", function(self)
         self.IsTooltipActive = false
     end)
-	
+    
     Choice_Talents:SetScript("OnHide", function(self)
        frame.IsTooltipActive = false;
        firstRankToolTip:Hide()
@@ -1271,7 +1271,7 @@ frame:SetScript("OnUpdate", function()
         end
     end
 	
-    if spell.nodeType == 2 then
+    if spell.nodeType == 2 and spell.Choices then
         -- Checando se algum dos feitiços foi aprendido
         local spellLearned
         for _, choiceSpellId in ipairs(spell.Choices or {}) do
@@ -1363,42 +1363,44 @@ end)
    frame.Border.texture:SetSize(59, 59)
    end
 		   
-if spell.nodeType == 2 and #spell.Choices >= 2 then
-    local spellId1, spellId2 = spell.Choices[1], spell.Choices[2]
-    local _, _, texturePath1 = GetSpellInfo(spellId1)
-    local _, _, texturePath2 = GetSpellInfo(spellId2)
+    if spell.nodeType == 2 and spell.Choices then
+        --print(dump(spell.Choices))
+        if #spell.Choices >= 2 then
+            local spellId1, spellId2 = spell.Choices[1], spell.Choices[2]
+            local _, _, texturePath1 = GetSpellInfo(spellId1)
+            local _, _, texturePath2 = GetSpellInfo(spellId2)
 
-    if not texturePath1 or not texturePath2 then
-        print("Erro: Uma das texturas não foi encontrada.")
-        return
+            if not texturePath1 or not texturePath2 then
+                print("Erro: Uma das texturas não foi encontrada.")
+                return
+            end
+
+            -- Certifique-se de que as texturas da esquerda e direita foram criadas
+            frame.TextureIconLeft = frame.TextureIconLeft or frame:CreateTexture(nil, "ARTWORK")
+            frame.TextureIconRight = frame.TextureIconRight or frame:CreateTexture(nil, "ARTWORK")
+
+            --frame.TextureIconLeft:SetTexture(texturePath1)
+            --frame.TextureIconRight:SetTexture(texturePath2)
+
+            -- Define o tamanho e a posição das texturas
+            local iconSize = frame.TextureIcon:GetWidth() + 10 -- Presumindo que TextureIcon é quadrado
+            frame.TextureIconLeft:SetSize(iconSize / 2, iconSize + 1)
+            frame.TextureIconLeft:SetPoint("LEFT", frame.TextureIcon, "LEFT", -2, 2)
+            frame.TextureIconLeft:SetTexCoord(0, 0.5, 0, 1)  -- Metade esquerda da primeira textura
+
+            frame.TextureIconRight:SetSize(iconSize / 2, iconSize)
+            frame.TextureIconRight:SetPoint("LEFT", frame.TextureIconLeft, "RIGHT", 0, 0)
+            frame.TextureIconRight:SetTexCoord(0.5, 1, 0, 1)  -- Metade direita da segunda textura
+
+            -- Ajustes finais
+            frame.Border.texture:ClearAllPoints()
+            frame.Border.texture:SetPoint("CENTER", frame.Border, "CENTER", 0.5, 0.5)
+            frame.Border.texture:SetSize(66, 66)
+            
+            SetPortraitToTexture(frame.TextureIconLeft, texturePath1)
+            SetPortraitToTexture(frame.TextureIconRight, texturePath2)
+        end
     end
-
-    -- Certifique-se de que as texturas da esquerda e direita foram criadas
-    frame.TextureIconLeft = frame.TextureIconLeft or frame:CreateTexture(nil, "ARTWORK")
-    frame.TextureIconRight = frame.TextureIconRight or frame:CreateTexture(nil, "ARTWORK")
-
-    --frame.TextureIconLeft:SetTexture(texturePath1)
-    --frame.TextureIconRight:SetTexture(texturePath2)
-
-    -- Define o tamanho e a posição das texturas
-    local iconSize = frame.TextureIcon:GetWidth() + 10 -- Presumindo que TextureIcon é quadrado
-    frame.TextureIconLeft:SetSize(iconSize / 2, iconSize + 1)
-    frame.TextureIconLeft:SetPoint("LEFT", frame.TextureIcon, "LEFT", -2, 2)
-    frame.TextureIconLeft:SetTexCoord(0, 0.5, 0, 1)  -- Metade esquerda da primeira textura
-
-    frame.TextureIconRight:SetSize(iconSize / 2, iconSize)
-    frame.TextureIconRight:SetPoint("LEFT", frame.TextureIconLeft, "RIGHT", 0, 0)
-    frame.TextureIconRight:SetTexCoord(0.5, 1, 0, 1)  -- Metade direita da segunda textura
-
-    -- Ajustes finais
-    frame.Border.texture:ClearAllPoints()
-    frame.Border.texture:SetPoint("CENTER", frame.Border, "CENTER", 0.5, 0.5)
-    frame.Border.texture:SetSize(66, 66)
-	
-	SetPortraitToTexture(frame.TextureIconLeft, texturePath1)
-	SetPortraitToTexture(frame.TextureIconRight, texturePath2)
-
-end
 		
         local TextureSettings = {
           [0] = {
