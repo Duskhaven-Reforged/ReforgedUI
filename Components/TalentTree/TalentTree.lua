@@ -334,6 +334,8 @@ AcceptTalentsButton:SetScript("OnMouseDown" , function()
         out = out..string.sub(alpha,rank+1,rank+1)
     end    
     
-    --print("Talent string to send: "..out)
-    PushForgeMessage(ForgeTopic.LEARN_TALENT, out);
+    if TreeCache.PreviousString[TalentTree.FORGE_SELECTED_TAB.TalentType+1] ~= out then
+        print("Talent string to send: "..out.." length: "..string.len(out))
+        PushForgeMessage(ForgeTopic.LEARN_TALENT, out);
+    end
 end)
