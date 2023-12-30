@@ -12,7 +12,9 @@ TalentTree = {
     SELECTED_SPEC = nil,
     MaxPoints = {},
     ClassTree = nil,
-    CLASS_TAB = nil
+    CLASS_TAB = nil,
+    TalentLoadoutCache = {},
+    currentLoadout = nil
 }
 
 TreeCache = {
@@ -34,13 +36,12 @@ local Backdrop = {
     insets = { left = 4, right = 4, top = 4, bottom = 4 }
 }
 
-alpha = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-
 TalentTreeWindow = CreateFrame("Frame", "TalentFrame", UIParent);
 TalentTreeWindow:SetSize(1000, 800)
 TalentTreeWindow:SetPoint("CENTER", 0, 50) --- LEFT/RIGHT -- --UP/DOWN --
 TalentTreeWindow:SetFrameLevel(1);
 TalentTreeWindow:SetFrameStrata("FULLSCREEN")
+TalentTreeWindow:Hide()
 
 
 ClassSpecWindow = CreateFrame("Frame", "ClassSpecWindow", UIParent);
@@ -49,6 +50,26 @@ ClassSpecWindow:SetPoint("CENTER", 0, 50) --- LEFT/RIGHT -- --UP/DOWN --
 ClassSpecWindow:SetFrameLevel(1);
 ClassSpecWindow:SetFrameStrata("FULLSCREEN")
 ClassSpecWindow:Hide()
+
+ClassSpecWindow:RegisterEvent("UNIT_SPELLCAST_START")
+ClassSpecWindow:RegisterEvent("UNIT_SPELLCAST_STOP")
+ClassSpecWindow:SetScript("OnEvent", function(self, event, unit)
+    if unit == "player" then
+        local spellName = UnitCastingInfo(unit)
+        if event == "UNIT_SPELLCAST_START" and spellName == "Activate Primary Spec" then
+            CastingBarFrame:SetBackdrop({bgFile = "path/to/your/background/texture"})
+            CastingBarFrame:SetStatusBarTexture("path/to/your/statusbar/texture")
+            CastingBarFrame:SetFrameStrata("TOOLTIP")
+            CastingBarFrame:ClearAllPoints()
+            CastingBarFrame:SetPoint("CENTER", ClassSpecWindow, "CENTER", 0, 0)
+        elseif event == "UNIT_SPELLCAST_STOP" then
+                CastingBarFrame:SetStatusBarTexture("Interface\TargetingFrame\UI-StatusBar")
+                CastingBarFrame:SetPoint("BOTTOM", UIParent, "BOTTOM", 0, 115)
+        end
+    end
+end)
+
+
 
 ClassSpecWindow:SetScript("OnShow", function(self)
     SetOverrideBindingClick(self, true, "N", "ClassSpecWindowClose")
@@ -299,9 +320,16 @@ StaticPopupDialogs["CONFIRM_TALENT_WIPE"] = {
 
 }
 
+
+local AcceptTalentsButton = CreateFrame("Button", "AcceptTalentsButton", TalentTreeWindow, "UIPanelButtonTemplate")
+AcceptTalentsButton:SetSize(200, 25)
+AcceptTalentsButton:SetPoint("BOTTOM", 0, 35) -- Position the button at the top right of the TalentTreeWindow
+AcceptTalentsButton:SetText("Apply Changes")
+AcceptTalentsButton:Show()
+
 local resetButton = CreateFrame("Button", "ResetTalentsButton", TalentTreeWindow, "UIPanelButtonTemplate")
 resetButton:SetSize(115, 40)
-resetButton:SetPoint("BOTTOM", 0, 30) -- Position the button at the top right of the TalentTreeWindow
+resetButton:SetPoint("RIGHT", AcceptTalentsButton, "RIGHT", 150, 0) -- Position the button at the top right of the TalentTreeWindow
 resetButton:SetText("Reset Talents")
 resetButton:Show()
 
@@ -309,33 +337,239 @@ resetButton:SetScript("OnClick", function()
     StaticPopup_Show("CONFIRM_TALENT_WIPE")
 end)
 
-local AcceptTalentsButton = CreateFrame("Button", "AcceptTalentsButton", TalentTreeWindow, "UIPanelButtonTemplate")
-AcceptTalentsButton:SetSize(115, 40)
-AcceptTalentsButton:SetPoint("BOTTOM", 0, 0) -- Position the button at the top right of the TalentTreeWindow
-AcceptTalentsButton:SetText("a")
-AcceptTalentsButton:Show()
 
-AcceptTalentsButton:RegisterForClicks("AnyDown");
-AcceptTalentsButton:SetScript("OnMouseDown" , function()
+
+
+--Testing--
+TalentLoadoutCache = TalentTree.TalentLoadoutCache
+
+local function BuildLoadoutString()
     local out = ""
 
-    -- tree metadata: type spec class
-    out = out..string.sub(alpha,TalentTree.FORGE_SELECTED_TAB.TalentType+1,TalentTree.FORGE_SELECTED_TAB.TalentType+1)
-    out = out..string.sub(alpha,TalentTree.FORGE_SELECTED_TAB.Id,TalentTree.FORGE_SELECTED_TAB.Id)
-    out = out..string.sub(alpha,GetClassId(UnitClass("player")),GetClassId(UnitClass("player")))
+    out = out..string.sub(Util.alpha, TalentTree.FORGE_SELECTED_TAB.TalentType + 1, TalentTree.FORGE_SELECTED_TAB.TalentType + 1)
+    out = out..string.sub(Util.alpha, TalentTree.FORGE_SELECTED_TAB.Id, TalentTree.FORGE_SELECTED_TAB.Id)
+    out = out..string.sub(Util.alpha, GetClassId(UnitClass("player")), GetClassId(UnitClass("player")))
 
     -- TODO: CLASS TREE
     for _, rank in ipairs(TreeCache.Spells[TalentTree.ClassTree]) do
-        out = out..string.sub(alpha,rank+1,rank+1)
+        out = out..string.sub(Util.alpha, rank + 1, rank + 1)
     end
 
     -- Spec tree last
     for _, rank in ipairs(TreeCache.Spells[TalentTree.FORGE_SELECTED_TAB.Id]) do
-        out = out..string.sub(alpha,rank+1,rank+1)
-    end    
-    
-    if TreeCache.PreviousString[TalentTree.FORGE_SELECTED_TAB.TalentType+1] ~= out then
-        print("Talent string to send: "..out.." length: "..string.len(out))
-        PushForgeMessage(ForgeTopic.LEARN_TALENT, out);
+        out = out..string.sub(Util.alpha, rank + 1, rank + 1)
+    end
+
+    return out
+end
+
+local function SetLoadoutButtonText(name)
+    buttonText:SetText(name)
+end
+
+local function SaveLoadout(id, name)
+    local loadoutString = BuildLoadoutString()
+    local item = {
+        name = name,
+        loadout = loadoutString
+    }
+    TalentLoadoutCache[TalentTree.FORGE_SELECTED_TAB.Id][id] = item
+
+    PushForgeMessage(ForgeTopic.SAVE_LOADOUT, tostring(id)..";"..name..";"..loadoutString)
+    SetLoadoutButtonText(name)
+end
+
+function ApplyLoadoutAndUpdateCurrent(id)
+    local loadout = TalentLoadoutCache[TalentTree.FORGE_SELECTED_TAB.Id][id]
+    print(dump(loadout))
+    if loadout then
+        SetLoadoutButtonText(id.." "..loadout.name)
+        TalentTree.currentLoadout = id
+        LoadTalentString(loadout.loadout)
+    end
+end
+
+AcceptTalentsButton:SetScript("OnClick", function()
+    local out = ""
+
+    -- tree metadata: type spec class
+    out = out..string.sub(Util.alpha, TalentTree.FORGE_SELECTED_TAB.TalentType + 1, TalentTree.FORGE_SELECTED_TAB.TalentType + 1)
+    out = out..string.sub(Util.alpha, TalentTree.FORGE_SELECTED_TAB.Id, TalentTree.FORGE_SELECTED_TAB.Id)
+    out = out..string.sub(Util.alpha, GetClassId(UnitClass("player")), GetClassId(UnitClass("player")))
+
+    -- TODO: CLASS TREE
+    for _, rank in ipairs(TreeCache.Spells[TalentTree.ClassTree]) do
+        out = out..string.sub(Util.alpha, rank + 1, rank + 1)
+    end
+
+    -- Spec tree last
+    for _, rank in ipairs(TreeCache.Spells[TalentTree.FORGE_SELECTED_TAB.Id]) do
+        out = out..string.sub(Util.alpha, rank + 1, rank + 1)
+    end
+
+    if TreeCache.PreviousString[TalentTree.FORGE_SELECTED_TAB.TalentType + 1] ~= out then
+        --print("Talent string to send: "..out.." length: "..string.len(out))
+        local loadout = TalentLoadoutCache[TalentTree.FORGE_SELECTED_TAB.Id][TalentTree.currentLoadout]
+        SaveLoadout(TalentTree.currentLoadout, loadout.name)
+        PushForgeMessage(ForgeTopic.LEARN_TALENT, out)
     end
 end)
+
+local LoadoutDropButton = CreateFrame("Button", "LoadoutDropButton", TalentTreeWindow)
+LoadoutDropButton:SetPoint("BOTTOMLEFT", TalentTreeWindow, "BOTTOMLEFT", -200, 35)
+LoadoutDropButton:SetSize(180, 32)
+LoadoutDropButton:SetFrameStrata("TOOLTIP")
+
+LoadoutDropButton.bgTexture = LoadoutDropButton:CreateTexture(nil, "BACKGROUND")
+LoadoutDropButton.bgTexture:SetTexture("Interface\\Glues\\CharacterCreate\\CharacterCreate-LabelFrame")
+LoadoutDropButton.bgTexture:SetPoint("CENTER")
+LoadoutDropButton.bgTexture:SetWidth(250)
+LoadoutDropButton.bgTexture:SetHeight(70)
+
+buttonText = LoadoutDropButton:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+buttonText:SetText("Saved Loadouts")
+buttonText:SetPoint("CENTER", LoadoutDropButton, "CENTER")
+
+local arrowButton = CreateFrame("Button", nil, LoadoutDropButton)
+arrowButton:SetSize(25, 25)
+arrowButton:SetPoint("RIGHT", LoadoutDropButton, "RIGHT", 0, 1)
+
+local arrowTexture = arrowButton:CreateTexture(nil, "OVERLAY")
+arrowTexture:SetTexture("Interface\\ChatFrame\\UI-ChatIcon-ScrollDown-Up")
+arrowTexture:SetAllPoints(arrowButton)
+arrowButton:SetNormalTexture(arrowTexture)
+
+local function UpdateLoadoutMenu()
+    local menuItems = {
+        {
+            text = "Create Loadout",
+            colorCode = "|cff00ff00",
+            func = function() StaticPopup_Show("CREATE_LOADOUT_POPUP") end,
+            notCheckable = true
+        },
+    }
+
+    for id, loadout in pairs(TalentLoadoutCache[TalentTree.FORGE_SELECTED_TAB.Id]) do
+        table.insert(menuItems, {
+            text = id.." "..loadout.name,
+            colorCode = "|cff0000ff",
+            func = function()
+                ApplyLoadoutAndUpdateCurrent(id)
+                CloseDropDownMenus()
+            end,
+            notCheckable = true
+        })
+    end
+
+    return menuItems
+end
+
+local function UpdateLoadoutButtonText(name, isDefault)
+    if isDefault then
+        buttonText:SetText(name)
+        buttonText:SetTextColor(0, 0, 1)
+    else
+        buttonText:SetText(name)
+        buttonText:SetTextColor(0, 0.5, 1)
+    end
+end
+
+
+local function ShowLoadoutMenu()
+    local menuItems = {
+        {
+            text = "Create Loadout",
+            colorCode = "|cff00ff00",
+            func = function() StaticPopup_Show("CREATE_LOADOUT_POPUP") end,
+            notCheckable = true
+        }
+    }
+
+    for id, loadout in pairs(TalentLoadoutCache[TalentTree.FORGE_SELECTED_TAB.Id]) do
+        local submenu = {
+            {
+                text = "Delete Loadout",
+                colorCode = "|cffFF0000",
+                func = function()
+                    TalentLoadoutCache[TalentTree.FORGE_SELECTED_TAB.Id][id] = nil
+                    DropDownList1:Hide()
+                    buttonText:SetText("Saved Loadouts")
+					RevertAllTalents()
+                end,
+                notCheckable = true
+            }
+        }
+        table.insert(menuItems, {
+            text = id.." "..loadout.name,
+            colorCode = "|cffffffff",
+            func = function()
+                ApplyLoadoutAndUpdateCurrent(id)
+            end,
+            notCheckable = true,
+            hasArrow = true,
+            menuList = submenu
+        })
+    end
+
+    local menuFrame = CreateFrame("Frame", "LoadoutMenuFrame", UIParent, "UIDropDownMenuTemplate")
+
+    UIDropDownMenu_Initialize(menuFrame, function(self, level, menuList)
+        if level == 1 then
+            for i, menuItem in ipairs(menuItems) do
+                local info = UIDropDownMenu_CreateInfo()
+                info.text = menuItem.text
+                info.colorCode = menuItem.colorCode
+                info.notCheckable = menuItem.notCheckable
+                info.func = menuItem.func
+                info.hasArrow = menuItem.hasArrow
+                info.menuList = menuItem.menuList
+                UIDropDownMenu_AddButton(info)
+            end
+        elseif level == 2 and menuList then
+            for i, menuItem in ipairs(menuList) do
+                local info = UIDropDownMenu_CreateInfo()
+                info.text = menuItem.text
+                info.colorCode = menuItem.colorCode
+                info.notCheckable = menuItem.notCheckable
+                info.func = menuItem.func
+                UIDropDownMenu_AddButton(info, level)
+            end
+        end
+    end, "MENU")
+
+    ToggleDropDownMenu(1, nil, menuFrame, arrowButton, 0, 0)
+end
+
+arrowButton:SetScript("OnClick", function(self, button, down)
+    ShowLoadoutMenu()
+end)
+
+StaticPopupDialogs["CREATE_LOADOUT_POPUP"] = {
+    text = "Enter the name of your new loadout:",
+    button1 = "OK",
+    button2 = "Cancel",
+    OnAccept = function(self)
+        print(dump(TalentTree.TalentLoadoutCache[TalentTree.FORGE_SELECTED_TAB.Id]))
+        local text = self.editBox:GetText()
+        local index = #TalentTree.TalentLoadoutCache[TalentTree.FORGE_SELECTED_TAB.Id] + 1
+        print(index.." "..text)
+        SaveLoadout(index, text)
+        buttonText:SetText(text)
+        StaticPopup_Hide("CREATE_LOADOUT_POPUP")
+    end,
+    hasEditBox = true,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+    preferredIndex = 3,
+}
+
+local function UpdateButtonDisplay(loadoutName)
+    if loadoutName then
+        buttonText:SetText(loadoutName)
+    else
+        buttonText:SetText("Saved Loadouts")
+    end
+end
+
+UpdateButtonDisplay()

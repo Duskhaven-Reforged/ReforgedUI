@@ -119,6 +119,11 @@ ForgeTopic = {
     MYTHIC_UPDATE_TIMER = 107,
     MYTHIC_UPDATE_DEATHS = 108,
     MYTHIC_UPDATE_CRITERIA = 109,
+
+    LOADOUT_ERROR                   = 120,
+    GET_LOADOUTS                    = 121,
+    SAVE_LOADOUT                    = 122,
+    DELETE_LOADOUT                  = 123,
 }
 
 -- These are the object definitions. Keyed by the same forge topic key.
@@ -670,7 +675,33 @@ DeserializerDefinitions = {
                 NAME = "count",
                 }}
         }
-    }
+    },
+    GET_LOADOUTS = {
+        OBJECT = ";",
+        FIELDS = {
+            DELIMITER = "$",
+            FIELDS = {{
+                NAME = "spec"
+            }, {
+                NAME = "loadouts",
+                OBJECT = "~",
+                FIELDS = {
+                    DELIMITER = "^",
+                    FIELDS = {{
+                        NAME = "id",
+                        TYPE = FieldType.NUMBER,
+                    }, {
+                        NAME = "active",
+                        TYPE = FieldType.NUMBER,
+                    },{
+                        NAME = "name"
+                    }, {
+                        NAME = "talents"
+                    }}
+                }
+            }}
+        }
+    },
 }
 
 function GetSpecID()

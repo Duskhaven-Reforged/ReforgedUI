@@ -1,3 +1,7 @@
+Util = {
+    alpha = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+}
+
 function ToggleTalentFrame(openPet)
     if openPet and HasPetUI() and PetCanBeAbandoned() then
         TalentFrame_LoadUI();
@@ -116,6 +120,7 @@ function GetCharacterSpecs(msg)
     end
     TalentTree.INITIALIZED = true
     PushForgeMessage(ForgeTopic.GET_TALENTS, "-1");
+    PushForgeMessage(ForgeTopic.GET_LOADOUTS, "-1")
 end
 
 SubscribeToForgeTopic(ForgeTopic.LEARN_TALENT_ERROR, function(msg)
@@ -124,76 +129,7 @@ end)
 
 local onUpdateFrame = CreateFrame("Frame")
 SubscribeToForgeTopic(ForgeTopic.GET_TALENTS, function(msg)
-    local type, _ = string.find(alpha, string.sub(msg, 1, 1))
-    local spec, _ = string.find(alpha, string.sub(msg, 2, 2))
-    local class, _ = string.find(alpha, string.sub(msg, 3, 3))
-    --print(msg)
-    if type-1 == tonumber(CharacterPointType.TALENT_SKILL_TREE) and string.len(msg) > 3 then
-
-        if not TreeCache.PreviousString[type] then
-            TreeCache.PreviousString[type] = nil
-        end
-
-        if msg ~= TreeCache.PreviousString[type] then
-            if not TalentTree.FORGE_TALENTS then
-                TalentTree.FORGE_TALENTS = {};
-            end
-
-            local specTreeLen = 0
-            if TreeCache.Spells[tostring(spec)] then
-                specTreeLen = #TreeCache.Spells[tostring(spec)]
-            end
-
-            local classTreeLen = 0
-            classTreeLen = #TreeCache.Spells[TalentTree.ClassTree]
-
-            -- ZERO EVERY STRUCT
-            TreeCache.Points[tostring(type-1)] = TalentTree.MaxPoints[tostring(type-1)]
-            TreeCache.PointsSpent[tostring(spec)] = 0
-
-            for i = 0, 50, 5 do
-                TreeCache.Investments[tostring(spec)][i] = 0
-                TreeCache.Investments[TalentTree.ClassTree][i] = 0
-                TreeCache.TotalInvests[i] = 0
-            end
-
-            SelectTab(TalentTree.FORGE_TABS[spec])
-
-            local nodeInd = 1
-            local classBlock = 3 + classTreeLen
-            if (4 >= classBlock) then
-                local classString = string.sub(msg, 4, classBlock)
-                for i = 1, classTreeLen, 1 do
-                    TreeCache.Spells[TalentTree.ClassTree][nodeInd] = 0;
-                    local rank = string.find(alpha, string.sub(classString, i, i)) - 1
-                    for click = 1, rank, 1 do
-                        local location = TreeCache.IndexToFrame[TalentTree.ClassTree][nodeInd]
-                        local frame = TalentTreeWindow.GridTalent.Talents[location.row][location.col]
-                        frame:GetScript("OnUpdate")();
-                        frame:GetScript("OnMouseDown")(frame, 'LeftButton');
-                    end
-                    nodeInd = nodeInd + 1
-                end
-            end
-
-            local specBlock = classBlock + specTreeLen
-            --print("starts: "..(classBlock+1).." ends: "..specBlock)
-            local nodeInd = 1
-            local specString = string.sub(msg, classBlock+1, specBlock)
-            for i = 1, specTreeLen, 1 do
-                TreeCache.Spells[tostring(spec)][nodeInd] = 0;
-                local rank = string.find(alpha, string.sub(specString, i, i)) - 1
-                for click = 1, rank, 1 do
-                    local location = TreeCache.IndexToFrame[tostring(spec)][nodeInd]
-                    local frame = TalentTreeWindow.GridTalent.Talents[location.row][location.col]
-                    frame:GetScript("OnUpdate")();
-                    frame:GetScript("OnMouseDown")(frame, 'LeftButton');
-                end
-                nodeInd = nodeInd + 1
-            end
-            TreeCache.PreviousString[type] = msg
-        end
-    end
+    LoadTalentString(msg);
 end)
 
 function RevertAllTalents ()
@@ -231,6 +167,103 @@ SubscribeToForgeTopic(ForgeTopic.ACTIVATE_CLASS_SPEC, function(msg)
     ClassSpecWindow.Lockout:Hide()
     TalentTreeWindow:Show()
     ClassSpecWindow:Hide()
+end)
+
+function LoadTalentString(msg)
+    print(msg)
+    RevertAllTalents();
+    local type, _ = string.find(Util.alpha, string.sub(msg, 1, 1))
+    local spec, _ = string.find(Util.alpha, string.sub(msg, 2, 2))
+    local class, _ = string.find(Util.alpha, string.sub(msg, 3, 3))
+    if type-1 == tonumber(CharacterPointType.TALENT_SKILL_TREE) and string.len(msg) > 3 then
+        if not TreeCache.PreviousString[type] then
+            TreeCache.PreviousString[type] = nil
+        end
+        --if msg ~= TreeCache.PreviousString[type] then
+            print("!")
+            if not TalentTree.FORGE_TALENTS then
+                TalentTree.FORGE_TALENTS = {};
+            end
+
+            local specTreeLen = 0
+            if TreeCache.Spells[tostring(spec)] then
+                specTreeLen = #TreeCache.Spells[tostring(spec)]
+            end
+
+            local classTreeLen = 0
+            classTreeLen = #TreeCache.Spells[TalentTree.ClassTree]
+
+            -- ZERO EVERY STRUCT
+            TreeCache.Points[tostring(type-1)] = TalentTree.MaxPoints[tostring(type-1)]
+            TreeCache.PointsSpent[tostring(spec)] = 0
+
+            for i = 0, 50, 5 do
+                TreeCache.Investments[tostring(spec)][i] = 0
+                TreeCache.Investments[TalentTree.ClassTree][i] = 0
+                TreeCache.TotalInvests[i] = 0
+            end
+
+            SelectTab(TalentTree.FORGE_TABS[spec])
+
+            local nodeInd = 1
+            local classBlock = 3 + classTreeLen
+            if (4 >= classBlock) then
+                local classString = string.sub(msg, 4, classBlock)
+                for i = 1, classTreeLen, 1 do
+                    TreeCache.Spells[TalentTree.ClassTree][nodeInd] = 0;
+                    local rank = string.find(Util.alpha, string.sub(classString, i, i)) - 1
+                    for click = 1, rank, 1 do
+                        local location = TreeCache.IndexToFrame[TalentTree.ClassTree][nodeInd]
+                        local frame = TalentTreeWindow.GridTalent.Talents[location.row][location.col]
+                        frame:GetScript("OnUpdate")();
+                        frame:GetScript("OnMouseDown")(frame, 'LeftButton');
+                    end
+                    nodeInd = nodeInd + 1
+                end
+            end
+
+            local specBlock = classBlock + specTreeLen
+            --print("starts: "..(classBlock+1).." ends: "..specBlock)
+            local nodeInd = 1
+            local specString = string.sub(msg, classBlock+1, specBlock)
+            for i = 1, specTreeLen, 1 do
+                TreeCache.Spells[tostring(spec)][nodeInd] = 0;
+                local rank = string.find(Util.alpha, string.sub(specString, i, i)) - 1
+                for click = 1, rank, 1 do
+                    local location = TreeCache.IndexToFrame[tostring(spec)][nodeInd]
+                    local frame = TalentTreeWindow.GridTalent.Talents[location.row][location.col]
+                    frame:GetScript("OnUpdate")();
+                    frame:GetScript("OnMouseDown")(frame, 'LeftButton');
+                end
+                nodeInd = nodeInd + 1
+            end
+            --TreeCache.PreviousString[type] = msg
+        end
+    --end
+end
+
+SubscribeToForgeTopic(ForgeTopic.GET_LOADOUTS, function(msg)
+    --print(msg)
+    local listOfObjects = DeserializeMessage(DeserializerDefinitions.GET_LOADOUTS, msg);
+    for _, obj in ipairs(listOfObjects) do
+        if not TalentTree.TalentLoadoutCache[obj.spec] then
+            TalentTree.TalentLoadoutCache[obj.spec] = {}
+        end
+
+        for _, loadout in ipairs(obj.loadouts) do
+            local item = {
+                name = loadout.name,
+                loadout = loadout.talents,
+            }
+
+            TalentTree.TalentLoadoutCache[obj.spec][loadout.id] = item
+
+            if loadout.active > 0 then
+                print(loadout.name.." here?")
+                ApplyLoadoutAndUpdateCurrent(loadout.id)
+            end
+        end
+    end
 end)
 
 function GetClassId (classString)

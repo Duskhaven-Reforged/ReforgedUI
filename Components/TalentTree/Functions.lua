@@ -748,6 +748,8 @@ function InitializeTalentLeft()
             if pointsSpent then
                 TalentTreeWindow.TabsLeft.Spec[tab.Id].Points.Text:SetText(pointsSpent);
             end
+			
+			TalentTreeWindow.TabsLeft.Spec[tab.Id].Points:Hide()
         end
 
 
