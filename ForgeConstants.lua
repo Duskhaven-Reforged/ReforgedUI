@@ -677,7 +677,7 @@ DeserializerDefinitions = {
         }
     },
     GET_LOADOUTS = {
-        OBJECT = ";",
+        OBJECT = "*",
         FIELDS = {
             DELIMITER = "$",
             FIELDS = {{

@@ -170,7 +170,6 @@ SubscribeToForgeTopic(ForgeTopic.ACTIVATE_CLASS_SPEC, function(msg)
 end)
 
 function LoadTalentString(msg)
-    print(msg)
     RevertAllTalents();
     local type, _ = string.find(Util.alpha, string.sub(msg, 1, 1))
     local spec, _ = string.find(Util.alpha, string.sub(msg, 2, 2))
@@ -180,7 +179,6 @@ function LoadTalentString(msg)
             TreeCache.PreviousString[type] = nil
         end
         --if msg ~= TreeCache.PreviousString[type] then
-            print("!")
             if not TalentTree.FORGE_TALENTS then
                 TalentTree.FORGE_TALENTS = {};
             end
@@ -245,6 +243,7 @@ end
 SubscribeToForgeTopic(ForgeTopic.GET_LOADOUTS, function(msg)
     --print(msg)
     local listOfObjects = DeserializeMessage(DeserializerDefinitions.GET_LOADOUTS, msg);
+    print(dump(listOfObjects))
     for _, obj in ipairs(listOfObjects) do
         if not TalentTree.TalentLoadoutCache[obj.spec] then
             TalentTree.TalentLoadoutCache[obj.spec] = {}
@@ -258,8 +257,7 @@ SubscribeToForgeTopic(ForgeTopic.GET_LOADOUTS, function(msg)
 
             TalentTree.TalentLoadoutCache[obj.spec][loadout.id] = item
 
-            if loadout.active > 0 then
-                print(loadout.name.." here?")
+                if loadout.active > 0 then
                 ApplyLoadoutAndUpdateCurrent(loadout.id)
             end
         end
