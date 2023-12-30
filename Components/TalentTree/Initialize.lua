@@ -170,13 +170,13 @@ SubscribeToForgeTopic(ForgeTopic.ACTIVATE_CLASS_SPEC, function(msg)
 end)
 
 function LoadTalentString(msg)
-    print(msg)
+    --print(msg)
     RevertAllTalents();
     local type, _ = string.find(Util.alpha, string.sub(msg, 1, 1))
     local spec, _ = string.find(Util.alpha, string.sub(msg, 2, 2))
     local class, _ = string.find(Util.alpha, string.sub(msg, 3, 3))
     if type-1 == tonumber(CharacterPointType.TALENT_SKILL_TREE) and string.len(msg) > 3 then
-        print(spec.." "..TalentTree.FORGE_SELECTED_TAB.Id)
+        --print(spec.." "..TalentTree.FORGE_SELECTED_TAB.Id)
         if spec == TalentTree.FORGE_SELECTED_TAB.Id then
 
             if not TreeCache.PreviousString[type] then
