@@ -243,7 +243,6 @@ end
 SubscribeToForgeTopic(ForgeTopic.GET_LOADOUTS, function(msg)
     --print(msg)
     local listOfObjects = DeserializeMessage(DeserializerDefinitions.GET_LOADOUTS, msg);
-    print(dump(listOfObjects))
     for _, obj in ipairs(listOfObjects) do
         if not TalentTree.TalentLoadoutCache[obj.spec] then
             TalentTree.TalentLoadoutCache[obj.spec] = {}

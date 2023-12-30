@@ -378,7 +378,6 @@ end
 
 function ApplyLoadoutAndUpdateCurrent(id)
     local loadout = TalentLoadoutCache[TalentTree.FORGE_SELECTED_TAB.Id][id]
-    print(dump(loadout))
     if loadout then
         SetLoadoutButtonText(id.." "..loadout.name)
         TalentTree.currentLoadout = id
@@ -550,10 +549,8 @@ StaticPopupDialogs["CREATE_LOADOUT_POPUP"] = {
     button1 = "OK",
     button2 = "Cancel",
     OnAccept = function(self)
-        print(dump(TalentTree.TalentLoadoutCache[TalentTree.FORGE_SELECTED_TAB.Id]))
         local text = self.editBox:GetText()
         local index = #TalentTree.TalentLoadoutCache[TalentTree.FORGE_SELECTED_TAB.Id] + 1
-        print(index.." "..text)
         SaveLoadout(index, text)
         buttonText:SetText(text)
         StaticPopup_Hide("CREATE_LOADOUT_POPUP")
