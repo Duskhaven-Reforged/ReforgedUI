@@ -337,9 +337,6 @@ resetButton:SetScript("OnClick", function()
     StaticPopup_Show("CONFIRM_TALENT_WIPE")
 end)
 
-
-
-
 --Testing--
 TalentLoadoutCache = TalentTree.TalentLoadoutCache
 
