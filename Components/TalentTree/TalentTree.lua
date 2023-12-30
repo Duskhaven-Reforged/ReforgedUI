@@ -471,6 +471,10 @@ local function UpdateLoadoutButtonText(name, isDefault)
     end
 end
 
+function DeleteLoadout(id)
+    RevertAllTalents()
+    PushForgeMessage(ForgeTopic.DELETE_LOADOUT, id);
+end
 
 local function ShowLoadoutMenu()
     local menuItems = {
@@ -491,7 +495,7 @@ local function ShowLoadoutMenu()
                     TalentLoadoutCache[TalentTree.FORGE_SELECTED_TAB.Id][id] = nil
                     DropDownList1:Hide()
                     buttonText:SetText("Saved Loadouts")
-					RevertAllTalents()
+                    DeleteLoadout(id)
                 end,
                 notCheckable = true
             }
