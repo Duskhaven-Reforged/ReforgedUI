@@ -170,17 +170,14 @@ SubscribeToForgeTopic(ForgeTopic.ACTIVATE_CLASS_SPEC, function(msg)
 end)
 
 function LoadTalentString(msg)
-    --print(msg)
     RevertAllTalents();
     local type, _ = string.find(Util.alpha, string.sub(msg, 1, 1))
     local spec, _ = string.find(Util.alpha, string.sub(msg, 2, 2))
     local class, _ = string.find(Util.alpha, string.sub(msg, 3, 3))
     if type-1 == tonumber(CharacterPointType.TALENT_SKILL_TREE) and string.len(msg) > 3 then
-        --print(spec.." "..TalentTree.FORGE_SELECTED_TAB.Id)
-        if spec == TalentTree.FORGE_SELECTED_TAB.Id then
-
+        if tonumber(spec) == tonumber(TalentTree.FORGE_SELECTED_TAB.Id) then
             if not TreeCache.PreviousString[type] then
-                TreeCache.PreviousString[type] = nil
+                TreeCache.PreviousString[type] = "empty :)"
             end
             --if msg ~= TreeCache.PreviousString[type] then
                 if not TalentTree.FORGE_TALENTS then
@@ -194,12 +191,10 @@ function LoadTalentString(msg)
 
                 local classTreeLen = 0
                 classTreeLen = #TreeCache.Spells[TalentTree.ClassTree]
-
                 -- ZERO EVERY STRUCT
                 TreeCache.Points[tostring(type-1)] = TalentTree.MaxPoints[tostring(type-1)]
                 TreeCache.PointsSpent[tostring(spec)] = 0
 
-                --print(dump(TreeCache.Investments))
                 for i = 0, 50, 5 do
                     TreeCache.Investments[tostring(spec)][i] = 0
                     TreeCache.Investments[TalentTree.ClassTree][i] = 0
@@ -240,14 +235,14 @@ function LoadTalentString(msg)
                     end
                     nodeInd = nodeInd + 1
                 end
-                --TreeCache.PreviousString[type] = msg
+
+                TreeCache.PreviousString[type] = msg
             end
-        end
-    --end
+        --end
+    end
 end
 
 SubscribeToForgeTopic(ForgeTopic.GET_LOADOUTS, function(msg)
-    --print(msg)
     local listOfObjects = DeserializeMessage(DeserializerDefinitions.GET_LOADOUTS, msg);
     for _, obj in ipairs(listOfObjects) do
         if not TalentTree.TalentLoadoutCache[obj.spec] then
@@ -261,8 +256,7 @@ SubscribeToForgeTopic(ForgeTopic.GET_LOADOUTS, function(msg)
             }
 
             TalentTree.TalentLoadoutCache[obj.spec][loadout.id] = item
-
-            if loadout.active > 0 then
+            if loadout.active > 0 and obj.spec == TalentTree.FORGE_SELECTED_TAB.Id then
                 ApplyLoadoutAndUpdateCurrent(loadout.id)
             end
         end

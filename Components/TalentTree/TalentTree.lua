@@ -471,7 +471,6 @@ local function UpdateLoadoutButtonText(name, isDefault)
 end
 
 function DeleteLoadout(id)
-    RevertAllTalents()
     PushForgeMessage(ForgeTopic.DELETE_LOADOUT, id);
 end
 
