@@ -14,7 +14,19 @@ Components\TalentTree\Functions.lua
 Components\TalentTree\HookScripts.lua
 Components\TalentTree\Microbar.lua
 
-Components\Tooltips\spells.lua
+Components\Tooltips\items.lua
+
+Components\AllStats\CustomPanel.lua
+Components\AllStats\FrameCreation.lua
+Components\AllStats\FunctionOverrides.lua
+Components\AllStats\Initialize.lua
+
+Components\Transmog\Constants.lua
+Components\Transmog\Transmog.lua
+Components\Transmog\Initialize.lua
+
+Components\Instance\Keystone.lua
+Components\Instance\Initialize.lua
 
 # Core Code
 Core\UIFixes.lua
