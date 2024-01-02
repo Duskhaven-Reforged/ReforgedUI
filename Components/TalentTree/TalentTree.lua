@@ -14,7 +14,8 @@ TalentTree = {
     ClassTree = nil,
     CLASS_TAB = nil,
     TalentLoadoutCache = {},
-    currentLoadout = nil
+    currentLoadout = nil,
+    prevLoadout = nil,
 }
 
 TreeCache = {
@@ -380,6 +381,7 @@ function ApplyLoadoutAndUpdateCurrent(id)
     local loadout = TalentLoadoutCache[TalentTree.FORGE_SELECTED_TAB.Id][id]
     if loadout then
         SetLoadoutButtonText(id.." "..loadout.name)
+        TalentTree.prevLoadout = TalentTree.currentLoadout
         TalentTree.currentLoadout = id
         LoadTalentString(loadout.loadout)
     end
@@ -403,7 +405,7 @@ AcceptTalentsButton:SetScript("OnClick", function()
         out = out..string.sub(Util.alpha, rank + 1, rank + 1)
     end
 
-    if TreeCache.PreviousString[TalentTree.FORGE_SELECTED_TAB.TalentType + 1] ~= out then
+    if TreeCache.PreviousString[TalentTree.FORGE_SELECTED_TAB.TalentType + 1] ~= out or TalentTree.prevLoadout ~= TalentTree.currentLoadout then
         --print("Talent string to send: "..out.." length: "..string.len(out))
         local loadout = TalentLoadoutCache[TalentTree.FORGE_SELECTED_TAB.Id][TalentTree.currentLoadout]
         SaveLoadout(TalentTree.currentLoadout, loadout.name)
@@ -457,7 +459,7 @@ local function UpdateLoadoutMenu()
         })
     end
 
-    return menuItems
+    return menuItemsq   
 end
 
 local function UpdateLoadoutButtonText(name, isDefault)
