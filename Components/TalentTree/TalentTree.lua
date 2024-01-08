@@ -723,13 +723,8 @@ StaticPopupDialogs["IMPORT_LOADOUT_POPUP"] = {
         local text = self.editBox:GetText()
         if text and text ~= "" then
             local loadout = TalentLoadoutCache[TalentTree.FORGE_SELECTED_TAB.Id][TalentTree.currentLoadout]
-            loadout.customMessage = text
-            local out = GenerateTalentString()
-            out = out .. loadout.customMessage 
-            loadout.talentString = out
-            SaveLoadout(TalentTree.currentLoadout, loadout.name, text)
-            PushForgeMessage(ForgeTopic.LEARN_TALENT, out)
-            buttonText:SetText(loadout.name)
+            loadout.talentString = text
+            LoadTalentString(text)
         end
         StaticPopup_Hide("IMPORT_LOADOUT_POPUP")
     end,

@@ -173,7 +173,7 @@ function LoadTalentString(msg)
     local type, _ = string.find(Util.alpha, string.sub(msg, 1, 1))
     local spec, _ = string.find(Util.alpha, string.sub(msg, 2, 2))
     local class, _ = string.find(Util.alpha, string.sub(msg, 3, 3))
-    print(msg)
+    --print(msg)
     if type-1 == tonumber(CharacterPointType.TALENT_SKILL_TREE) and string.len(msg) > 3 and tonumber(spec) == tonumber(TalentTree.FORGE_SELECTED_TAB.Id) then
         if not TreeCache.PreviousString[type] then
             TreeCache.PreviousString[type] = "empty :)"
