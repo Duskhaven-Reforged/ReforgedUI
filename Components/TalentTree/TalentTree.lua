@@ -88,7 +88,7 @@ ClassSpecWindow:SetScript("OnEvent", function(self, event, unit)
             CastingBarFrame:ClearAllPoints()
             CastingBarFrame:SetPoint("CENTER", ClassSpecWindow, "CENTER", 0, 0)
         elseif event == "UNIT_SPELLCAST_STOP" then
-                CastingBarFrame:SetStatusBarTexture("Interface\TargetingFrame\UI-StatusBar")
+                CastingBarFrame:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
                 CastingBarFrame:SetPoint("BOTTOM", UIParent, "BOTTOM", 0, 115)
         end
     end
@@ -119,36 +119,36 @@ end
 local windows = {TalentTreeWindow, ClassSpecWindow}
 for i, window in ipairs(windows) do
 
-    local SpecTabButton = CreateFrame("Button", "SpecButton" .. i, window) -- Identificador único
-    SpecTabButton:SetSize(150, 60)
-    SpecTabButton:SetFrameStrata("MEDIUM")
-    SpecTabButton:SetScript("OnClick", function()
-         if TalentTreeWindow:IsVisible() then
-         TalentTreeWindow:Hide()
-         ClassSpecWindow:Show()
-         end
-    end)
+    -- local SpecTabButton = CreateFrame("Button", "SpecButton" .. i, window) -- Identificador único
+    -- SpecTabButton:SetSize(150, 60)
+    -- SpecTabButton:SetFrameStrata("MEDIUM")
+    -- SpecTabButton:SetScript("OnClick", function()
+    --      if TalentTreeWindow:IsVisible() then
+    --      TalentTreeWindow:Hide()
+    --      ClassSpecWindow:Show()
+    --      end
+    -- end)
     
-    local normalTexture = SpecTabButton:CreateTexture()
-    normalTexture:SetTexture("Interface\\AddOns\\ForgedWoWCommunication\\UI\\uiframestab")
-    normalTexture:SetAllPoints(SpecTabButton)
+    -- local normalTexture = SpecTabButton:CreateTexture()
+    -- normalTexture:SetTexture("Interface\\AddOns\\ForgedWoWCommunication\\UI\\uiframestab")
+    -- normalTexture:SetAllPoints(SpecTabButton)
     
-    local highlightTexture = SpecTabButton:CreateTexture()
-    highlightTexture:SetTexture("Interface\\AddOns\\ForgedWoWCommunication\\UI\\uiframestab-Highlight")
-    highlightTexture:SetAllPoints(SpecTabButton)
+    -- local highlightTexture = SpecTabButton:CreateTexture()
+    -- highlightTexture:SetTexture("Interface\\AddOns\\ForgedWoWCommunication\\UI\\uiframestab-Highlight")
+    -- highlightTexture:SetAllPoints(SpecTabButton)
     
-    SpecTabButton:SetNormalTexture(normalTexture)
-    SpecTabButton:SetHighlightTexture(highlightTexture)
+    -- SpecTabButton:SetNormalTexture(normalTexture)
+    -- SpecTabButton:SetHighlightTexture(highlightTexture)
     
-    local SpecTabButtonText = SpecTabButton:CreateFontString()
-    SpecTabButtonText:SetFont("Fonts\\FRIZQT__.TTF", 13, "OUTLINE")
-    SpecTabButtonText:SetPoint("CENTER", 0, 0)
-    SpecTabButtonText:SetTextColor(1, 1, 0)
-    SpecTabButtonText:SetText("Specializations")
+    -- local SpecTabButtonText = SpecTabButton:CreateFontString()
+    -- SpecTabButtonText:SetFont("Fonts\\FRIZQT__.TTF", 13, "OUTLINE")
+    -- SpecTabButtonText:SetPoint("CENTER", 0, 0)
+    -- SpecTabButtonText:SetTextColor(1, 1, 0)
+    -- SpecTabButtonText:SetText("Specializations")
     
-    SpecTabButton:SetScript("OnUpdate", function(self, elapsed)
-    CheckPlayerLevel(SpecTabButton, SpecTabButtonText)
-    end)
+    -- SpecTabButton:SetScript("OnUpdate", function(self, elapsed)
+    -- CheckPlayerLevel(SpecTabButton, SpecTabButtonText)
+    -- end)
 
 
     -- Botão Talentos
@@ -179,11 +179,11 @@ for i, window in ipairs(windows) do
     TalentTabText:SetTextColor(1, 1, 0)
     TalentTabText:SetText("Talents")
     
-        if window == TalentTreeWindow then
-        SpecTabButton:SetPoint("BOTTOMLEFT", window, "BOTTOMLEFT", -200, -35)
+    if window == TalentTreeWindow then
+        --SpecTabButton:SetPoint("BOTTOMLEFT", window, "BOTTOMLEFT", -200, -35)
         TalentTabButton:SetPoint("LEFT", SpecTabButton, "RIGHT", 50, 0)
     elseif window == ClassSpecWindow then
-        SpecTabButton:SetPoint("BOTTOMLEFT", window, "BOTTOMLEFT", -200, -35)
+        --SpecTabButton:SetPoint("BOTTOMLEFT", window, "BOTTOMLEFT", -200, -35)
         TalentTabButton:SetPoint("LEFT", SpecTabButton, "RIGHT", 50, 0)
     end
 end

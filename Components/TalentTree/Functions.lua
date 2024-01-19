@@ -100,16 +100,13 @@ end
 
 
 function FindExistingTab(tabId)
-    if tabId == TalentTree.ClassTree then
-        return TalentTree.CLASS_TAB
-    end
-
     for _, tab in ipairs(TalentTree.FORGE_TABS) do
         if tonumber(tab.Id) == tonumber(tabId) then
             return tab;
         end
     end
-    return FindTabInForgeSpell(tabId);
+
+    return TalentTree.FORGE_TABS[CharacterPointType.TALENT_SKILL_TREE];
 end
 
 function UpdateTalentCurrentView()
@@ -396,18 +393,6 @@ function SelectTab(tab)
         InitializeGridForTalent();
         if tab.Talents then
             InitializeViewFromGrid(TalentTreeWindow.GridTalent, tab.Talents, tab.Id);
-            if tab.TalentType == CharacterPointType.TALENT_SKILL_TREE then
-                if not TreeCache.IndexToFrame[TalentTree.ClassTree] then
-                    TreeCache.IndexToFrame[TalentTree.ClassTree] = {}
-                end
-                if not TreeCache.Spells[TalentTree.ClassTree] then
-                    TreeCache.Spells[TalentTree.ClassTree] = {}
-                end
-                if not TreeCache.PrereqUnlocks[TalentTree.ClassTree] then
-                    TreeCache.PrereqUnlocks[TalentTree.ClassTree] = {}
-                end
-                InitializeViewFromGrid(TalentTreeWindow.GridTalent, TalentTree.CLASS_TAB.Talents, TalentTree.ClassTree)
-            end
         end
         TalentTreeWindow.GridTalent:Show();
     else
@@ -859,8 +844,8 @@ function InitializeGridForTalent()
     local visualizationSize = 30;
     local spaceBetweenNodes = 30; 
     local gridRows = 30;
-    local totalGridCols = 22;
-	local MaxColumns = 11;
+    local totalGridCols = 21;
+	local MaxColumns = 17;
 
     for i = 0, gridRows - 1 do
         if not TalentTreeWindow.GridTalent.Talents[i] then
@@ -870,8 +855,7 @@ function InitializeGridForTalent()
         for j = 0, totalGridCols - 1 do
             -- Ajustando a lógica de determinação da árvore
             local tree;
-
-            local basePosX, basePosY = -600, -300;
+            local basePosX, basePosY = -580, -320;
 
             -- Posições de X e Y
             local posX, posY;
@@ -1030,14 +1014,14 @@ function InitializeViewFromGrid(children, spells, tabId)
         local NumberOfRanks = tonumber(spell.NumberOfRanks);
         local tab = FindExistingTab(tabId)
 
-        if tab.Id ~= GetClassTree(UnitClass("player")) then
-            ColumnIndex = ColumnIndex + 11
-        end
+        -- if tab.Id ~= GetClassTree(UnitClass("player")) then
+        --     ColumnIndex = ColumnIndex + 11
+        -- end
 
         local frame = children.Talents[RowIndex][ColumnIndex];
     
-        if not TreeCache.IndexToFrame[tab.Id][spell.nodeIndex] then
-            TreeCache.IndexToFrame[tab.Id][spell.nodeIndex] = { row = RowIndex, col = ColumnIndex }
+        if not TreeCache.IndexToFrame[tabId][spell.nodeIndex] then
+            TreeCache.IndexToFrame[tabId][spell.nodeIndex] = { row = RowIndex, col = ColumnIndex }
         end
         if not TreeCache.Spells[tabId][spell.nodeIndex] then
             TreeCache.Spells[tabId][spell.nodeIndex] = 0; 
