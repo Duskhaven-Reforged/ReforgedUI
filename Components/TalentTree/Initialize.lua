@@ -173,7 +173,6 @@ function LoadTalentString(msg)
     local type, _ = string.find(Util.alpha, string.sub(msg, 1, 1))
     local spec, _ = string.find(Util.alpha, string.sub(msg, 2, 2))
     local class, _ = string.find(Util.alpha, string.sub(msg, 3, 3))
-    --print(msg)
     if type-1 == tonumber(CharacterPointType.TALENT_SKILL_TREE) and string.len(msg) > 3 and tonumber(spec) == tonumber(TalentTree.FORGE_SELECTED_TAB.Id) then
         if not TreeCache.PreviousString[type] then
             TreeCache.PreviousString[type] = "empty :)"
@@ -209,19 +208,17 @@ function LoadTalentString(msg)
 
             local nodeInd = 1
             local classBlock = 3 + classTreeLen
-            if (4 >= classBlock) then
-                local classString = string.sub(msg, 4, classBlock)
-                for i = 1, classTreeLen, 1 do
-                    TreeCache.Spells[TalentTree.ClassTree][nodeInd] = 0;
-                    local rank = string.find(Util.alpha, string.sub(classString, i, i)) - 1
-                    for click = 1, rank, 1 do
-                        local location = TreeCache.IndexToFrame[TalentTree.ClassTree][nodeInd]
-                        local frame = TalentTreeWindow.GridTalent.Talents[location.row][location.col]
-                        frame:GetScript("OnUpdate")();
-                        frame:GetScript("OnMouseDown")(frame, 'LeftButton');
-                    end
-                    nodeInd = nodeInd + 1
+            local classString = string.sub(msg, 4, classBlock)
+            for i = 1, classTreeLen, 1 do
+                TreeCache.Spells[TalentTree.ClassTree][nodeInd] = 0;
+                local rank = string.find(Util.alpha, string.sub(classString, i, i)) - 1
+                for click = 1, rank, 1 do
+                    local location = TreeCache.IndexToFrame[TalentTree.ClassTree][nodeInd]
+                    local frame = TalentTreeWindow.GridTalent.Talents[location.row][location.col]
+                    frame:GetScript("OnUpdate")();
+                    frame:GetScript("OnMouseDown")(frame, 'LeftButton');
                 end
+                nodeInd = nodeInd + 1
             end
 
             local specBlock = classBlock + specTreeLen
