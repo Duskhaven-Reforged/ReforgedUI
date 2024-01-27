@@ -1330,7 +1330,10 @@ frame:SetScript("OnUpdate", function()
         frame.reqsMet = true
     end
 
-    if (tonumber(TreeCache.Points[tab.TalentType]) < tonumber(spell.RankCost) or TreeCache.PointsSpent[tabId] < spell.TabPointReq or UnitLevel("player") < tonumber(spell.RequiredLevel) or not frame.reqsMet) then
+    if (tonumber(TreeCache.Points[tab.TalentType]) < tonumber(spell.RankCost) 
+        or TreeCache.PointsSpent[tabId] < spell.TabPointReq 
+        or UnitLevel("player") < tonumber(spell.RequiredLevel) 
+        or not frame.reqsMet) then
         -- Aplica o efeito cinza se o spellID não estiver na SpellCache
         if (tonumber(spell.NumberOfRanks) > TreeCache.Spells[tabId][spell.nodeIndex]) then
             frame.TextureIcon:SetDesaturated(true)
