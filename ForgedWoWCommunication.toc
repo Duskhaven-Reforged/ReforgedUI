@@ -7,14 +7,14 @@ ForgeConstants.lua
 ForgeConnection.lua
 PowerType.lua
 
-Components\TalentTree\Constants.lua
-Components\TalentTree\TalentTree.lua
-Components\TalentTree\Initialize.lua
-Components\TalentTree\Functions.lua
-Components\TalentTree\HookScripts.lua
-Components\TalentTree\Microbar.lua
-
 Components\Tooltips\items.lua
+
+Components\Perks\Constants.lua
+Components\Perks\SharedFunctions.lua
+Components\Perks\Explorer.lua
+Components\Perks\Selection.lua
+Components\Perks\Inspect.lua
+Components\Perks\Initialize.lua
 
 Components\AllStats\CustomPanel.lua
 Components\AllStats\FrameCreation.lua
