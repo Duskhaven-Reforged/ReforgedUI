@@ -229,22 +229,22 @@ function IsNodeUnlocked(talent, CurrentRank)
 end
 
 function DrawNode(startPosition, endPosition, parentFrame, parent, offSet, talent, CurrentRank, previousSpell)
-    local nodeSize = 0.05  -- Este é um valor arbitrário; ajuste para o tamanho real dos seus nós
+    local nodeSize = 0.05 
     local x1 = startPosition.x + nodeSize / 2
     local y1 = startPosition.y + nodeSize / 2
     local x2 = endPosition.x + nodeSize / 2
     local y2 = endPosition.y + nodeSize / 2
 
-    local dx = x2 - x1
+    local dx = x1 - x2
     local dy = y2 - y1
     local angle = math.atan2(dy, dx)
     local length = math.sqrt((x2 - x1)^2 + (y2 - y1)^2)
     local cx = (x1 + x2) / 2
     local cy = (y1 + y2) / 2
 
-if dy ~= 0 and dx == 0 then  -- Verifica se a linha é puramente vertical
-    cx = cx - 1
-end
+    if dy ~= 0 and dx == 0 then
+      cx = cx - 1
+    end
 
 
 if not parentFrame.node[talent.SpellId] then
@@ -268,7 +268,7 @@ if not parentFrame.node[talent.SpellId] then
 
     if y2 > y1 then
         if x2 == x1 then
-            angleToSet = 90
+            angleToSet = 180
         elseif x2 > x1 then
             angleToSet = 35
         else
@@ -288,24 +288,7 @@ if not parentFrame.node[talent.SpellId] then
         else
             angleToSet = 180
         end
-    end
-	
-    local arrowTextureSize = 30
-    local arrowOffset = arrowTextureSize / 2
-
-    -- Calcular a nova posição da ponta da seta, ajustando com base no ângulo
-    local arrowCenterX = x2 - arrowOffset * math.cos(angle)
-    local arrowCenterY = y2 - arrowOffset * math.sin(angle)
-
-    if not parentFrame.node[talent.SpellId].arrowTexture then
-        parentFrame.node[talent.SpellId].arrowTexture = parentFrame.node[talent.SpellId]:CreateTexture(nil, "ARTWORK")
-        parentFrame.node[talent.SpellId].arrowTexture:SetSize(arrowTextureSize, arrowTextureSize)
-        parentFrame.node[talent.SpellId].arrowTexture:SetTexture("Interface\\AddOns\\ForgedWoWCommunication\\UI\\arrowtip")
-        parentFrame.node[talent.SpellId].arrowTexture:SetPoint("CENTER", parentFrame.node[talent.SpellId], "BOTTOMLEFT", arrowCenterX - cx, arrowCenterY - cy)
-        parentFrame.node[talent.SpellId].arrowTexture:SetRotation(angle)
-        parentFrame.node[talent.SpellId].arrowTexture:Hide()
-    end
-    
+    end   
 
 
         parentFrame.node[talent.SpellId].animation = parentFrame.node[talent.SpellId]:CreateAnimationGroup()
@@ -457,8 +440,9 @@ function SelectTab(tab)
         UpdateActivateSpecButton(tab)
      end
 
-    TalentTreeWindow:Show()
+    TalentTreeWindow:Hide()
     ClassSpecWindow:Hide()
+
 end
 	 
 function GetPointByCharacterPointType(type)
@@ -694,13 +678,11 @@ function InitializeTalentLeft()
 		
 		local ButtonState = TalentTreeWindow.TabsLeft.Spec[tab.Id].ActivateSpecBtn:GetButtonState()		
         TalentTreeWindow.TabsLeft.Spec[tab.Id].ActivateSpecBtn:SetScript("OnClick", function(self)
+         if self:GetText() == "Activate" then
           currentTab = tab
           ActivateSpec(currentTab.Id)
-		  
-		  if ButtonState == "NORMAL" then
-		  ClassSpecWindow.Lockout:Show()
-		  end
-		  
+          ClassSpecWindow.Lockout:Show()
+         end
         end)
 
 		
@@ -924,13 +906,31 @@ end
 
 function InitializePreReqAndDrawNodes(spells, spellNode, children, parent, offset, CurrentRank)
     for _, pr in pairs(spellNode.Prereqs) do
-        local previousSpell = FindPreReq(spells, tonumber(pr.Talent));
-        local startPosition = GetPositionXY(children[tonumber(previousSpell.ColumnIndex)][tonumber(
-            previousSpell.RowIndex)]);
-        local endPosition = GetPositionXY(children[tonumber(spellNode.ColumnIndex)][tonumber(spellNode.RowIndex)]);
-        DrawNode(endPosition, startPosition,
-            children[tonumber(previousSpell.ColumnIndex)][tonumber(previousSpell.RowIndex)], parent, offset, spellNode,
-            CurrentRank, previousSpell);
+        local previousSpell = FindPreReq(spells, tonumber(pr.Talent))
+        local previousSpellFrame = children[tonumber(previousSpell.ColumnIndex)][tonumber(previousSpell.RowIndex)]
+        local spellNodeFrame = children[tonumber(spellNode.ColumnIndex)][tonumber(spellNode.RowIndex)]
+
+        local previousSpellX, previousSpellY = previousSpellFrame:GetCenter()
+        local spellNodeX, spellNodeY = spellNodeFrame:GetCenter()
+
+        -- Aqui estamos assumindo que parent é o frame total do painel de talentos.
+        local parentBottom = select(5, parent:GetPoint("BOTTOM"))
+
+        -- Ajustar as coordenadas y para serem relativas à parte inferior do frame parent
+        local adjustedStartY = previousSpellY - parentBottom
+        local adjustedEndY = spellNodeY - parentBottom
+
+        local lineTexture = parent:CreateTexture(nil, "OVERLAY")
+        lineTexture:SetDrawLayer("ARTWORK", 7)
+        local width = 10
+
+        if IsNodeUnlocked(spellNode, CurrentRank) then
+            lineTexture:SetTexture(CONSTANTS.UI.CONNECTOR)
+        else
+            lineTexture:SetTexture(CONSTANTS.UI.CONNECTOR_DISABLED)
+        end
+
+        DrawRouteLine(lineTexture, parent, previousSpellX, adjustedStartY, spellNodeX, adjustedEndY, width, "BOTTOM")
     end
 end
 
@@ -1029,6 +1029,7 @@ function InitializeViewFromGrid(children, spells, tabId)
         local RowIndex = tonumber(spell.RowIndex)-1;
         local NumberOfRanks = tonumber(spell.NumberOfRanks);
         local tab = FindExistingTab(tabId)
+		
 
         if tab.Id ~= GetClassTree(UnitClass("player")) then
             ColumnIndex = ColumnIndex + 11
@@ -1076,13 +1077,30 @@ function InitializeViewFromGrid(children, spells, tabId)
             frame.Border:Hide();
             frame.TextureIcon:SetTexture(icon);
         else
+    
+        frame:EnableMouse(true)
+        frame:RegisterForDrag("LeftButton")
+        frame:SetMovable(true) 
 
-    frame:SetScript("OnEnter", function()
+        frame:SetScript("OnDragStart", function()
+         PickupSpell(name) -- Substitua 'name' pelo nome real da magia
+        end)
 
+        frame:SetScript("OnDragStop", function()
+         frame:StopMovingOrSizing() -- Para o movimento e ajuste do tamanho
+        end)
+
+        frame:SetScript("OnEnter", function()
+	
+	     if (tonumber(TreeCache.Points[tab.TalentType]) < tonumber(spell.RankCost) or TreeCache.PointsSpent[tabId] < spell.TabPointReq or UnitLevel("player") < tonumber(spell.RequiredLevel) or not frame.reqsMet) then
+	        return;
+         end
+        
          if spell.nodeType <= 1 then            
             CreateTooltip(spell, SpellId, NextSpellId, frame, CurrentRank)
             frame.IsTooltipActive = true
          end
+
 
     if spell.nodeType == 2 then
         Choice_Talents:SetParent(frame)
@@ -1114,12 +1132,10 @@ function InitializeViewFromGrid(children, spells, tabId)
         end
 
     local spellName, _, spellIcon = GetSpellInfo(choiceSpellId)
-    --button.texture:SetTexture(spellIcon)
     SetPortraitToTexture(button.texture, spellIcon)
     button:SetPoint("CENTER", Choice_Talents, "CENTER", ((i - 1) * 60) - (30 * (#spell.Choices - 1)), 0)
     button:Show()
 
-    -- Adicionando o tooltip
     button:SetScript("OnEnter", function(self)
         CreateTooltip(spell, choiceSpellId, NextSpellId, self, CurrentRank)  -- Substitua NextSpellId e CurrentRank se necessário
         self.IsTooltipActive = true
@@ -1147,7 +1163,7 @@ end)
 				Choice_Talents:Hide()
             end)
 		
-
+		
 
 frame.RankText:SetText(CurrentRankSpell(CurrentRank))
 frame:RegisterForClicks("AnyDown");
@@ -1162,7 +1178,6 @@ frame:SetScript("OnMouseDown", function(self, button)
                 TreeCache.PointsSpent[tab.Id] = TreeCache.PointsSpent[tab.Id] + spell.RankCost
                 TreeCache.Investments[tab.Id][spell.TabPointReq] = TreeCache.Investments[tab.Id][spell.TabPointReq] + spell.RankCost
 
-                --print("Spell IDs in Cache:", table.concat(spellIds, ", "))  -- Imprime todos os IDs em uma linha
                 CurrentRank = TreeCache.Spells[tabId][spell.nodeIndex]
 
                 TreeCache.PrereqUnlocks[tabId][spell.SpellId] = CurrentRank
@@ -1210,7 +1225,6 @@ frame:SetScript("OnMouseDown", function(self, button)
                 if value then
                     cumulative = cumulative + value
                     TreeCache.TotalInvests[i] = cumulative
-                    --print(i.." : "..value.." "..cumulative)
                 end
             end
 
@@ -1219,16 +1233,9 @@ frame:SetScript("OnMouseDown", function(self, button)
             ShowTypeTalentPoint(tab.TalentType, tabId)
         end
     end
-    --print(dump(TreeCache.Investments))
-    --print(dump(TreeCache.PrereqRev))
-    --print(dump(TreeCache.PrereqUnlocks))
-    -- Aqui você pode adicionar qualquer outra lógica necessária para outros tipos de nodeType
 end)
 end
 
-function UpdateRanks()
-
-end
 
 frame:SetScript("OnUpdate", function()
     local next = next
@@ -1246,7 +1253,6 @@ frame:SetScript("OnUpdate", function()
             end
 
             if (#spentAfter > 0) then
-                --print(dump(spentAfter))
                 for _, tier in ipairs(spentAfter) do
                     if TreeCache.TotalInvests[tier-5] then
                         if tier > TreeCache.TotalInvests[tier-5]-1 then
@@ -1274,7 +1280,6 @@ frame:SetScript("OnUpdate", function()
     end
 	
     if spell.nodeType == 2 and spell.Choices then
-        -- Checando se algum dos feitiços foi aprendido
         local spellLearned
         for _, choiceSpellId in ipairs(spell.Choices or {}) do
             if IsSpellKnown(tonumber(choiceSpellId)) or CurrentRank > 0 then
@@ -1284,7 +1289,6 @@ frame:SetScript("OnUpdate", function()
         end
 
         if spellLearned then
-            -- Obtendo a textura do feitiço aprendido
             local _, _, spellIcon = GetSpellInfo(spellLearned)
             frame.TextureIcon:SetTexture(spellIcon)
 			frame.TextureIcon:ClearAllPoints()
@@ -1300,6 +1304,27 @@ frame:SetScript("OnUpdate", function()
             frame.TextureIconLeft:Show()
             frame.TextureIconRight:Show()
         end
+		
+	if (tonumber(TreeCache.Points[tab.TalentType]) < tonumber(spell.RankCost) or TreeCache.PointsSpent[tabId] < spell.TabPointReq or UnitLevel("player") < tonumber(spell.RequiredLevel) or not frame.reqsMet) then
+        if (tonumber(spell.NumberOfRanks) > TreeCache.Spells[tabId][spell.nodeIndex]) then
+            frame.TextureIcon:SetDesaturated(true)
+            if frame.Border and frame.Border.texture then
+			    frame.Border.texture:SetDesaturated(true)
+                frame.TextureIconLeft:SetDesaturated(true)
+				frame.TextureIconRight:SetDesaturated(true)
+            end
+        end
+        frame.CanUprank = false
+    else
+        frame.TextureIcon:SetDesaturated(false)
+        if frame.Border and frame.Border.texture then
+           frame.Border.texture:SetDesaturated(false)
+           frame.TextureIconLeft:SetDesaturated(false)
+		   frame.TextureIconRight:SetDesaturated(false)
+        end
+        frame.CanUprank = true
+    end
+	
     end
 	
     if CurrentRank <= 0 then
@@ -1313,7 +1338,6 @@ frame:SetScript("OnUpdate", function()
             if TreeCache.PrereqUnlocks[prereq.TalentTabId] then
                 local reqUnlocked = TreeCache.PrereqUnlocks[prereq.TalentTabId][prereq.Talent]
                 if reqUnlocked then
-                    --print(dump(reqUnlocked))
                     if tonumber(reqUnlocked) >= tonumber(prereq.RequiredRank) then
                         frame.reqsMet = true
                     else
@@ -1330,11 +1354,7 @@ frame:SetScript("OnUpdate", function()
         frame.reqsMet = true
     end
 
-    if (tonumber(TreeCache.Points[tab.TalentType]) < tonumber(spell.RankCost) 
-        or TreeCache.PointsSpent[tabId] < spell.TabPointReq 
-        or UnitLevel("player") < tonumber(spell.RequiredLevel) 
-        or not frame.reqsMet) then
-        -- Aplica o efeito cinza se o spellID não estiver na SpellCache
+    if (tonumber(TreeCache.Points[tab.TalentType]) < tonumber(spell.RankCost) or TreeCache.PointsSpent[tabId] < spell.TabPointReq or UnitLevel("player") < tonumber(spell.RequiredLevel) or not frame.reqsMet) then
         if (tonumber(spell.NumberOfRanks) > TreeCache.Spells[tabId][spell.nodeIndex]) then
             frame.TextureIcon:SetDesaturated(true)
             if frame.Border and frame.Border.texture then
@@ -1343,7 +1363,6 @@ frame:SetScript("OnUpdate", function()
         end
         frame.CanUprank = false
     else
-        -- Remove o efeito cinza se o spellID estiver na SpellCache
         frame.TextureIcon:SetDesaturated(false)
         if frame.Border and frame.Border.texture then
             frame.Border.texture:SetDesaturated(false)
@@ -1369,7 +1388,6 @@ end)
    end
 		   
     if spell.nodeType == 2 and spell.Choices then
-        --print(dump(spell.Choices))
         if #spell.Choices >= 2 then
             local spellId1, spellId2 = spell.Choices[1], spell.Choices[2]
             local _, _, texturePath1 = GetSpellInfo(spellId1)
@@ -1380,14 +1398,9 @@ end)
                 return
             end
 
-            -- Certifique-se de que as texturas da esquerda e direita foram criadas
             frame.TextureIconLeft = frame.TextureIconLeft or frame:CreateTexture(nil, "ARTWORK")
             frame.TextureIconRight = frame.TextureIconRight or frame:CreateTexture(nil, "ARTWORK")
-
-            --frame.TextureIconLeft:SetTexture(texturePath1)
-            --frame.TextureIconRight:SetTexture(texturePath2)
-
-            -- Define o tamanho e a posição das texturas
+			
             local iconSize = frame.TextureIcon:GetWidth() + 10 -- Presumindo que TextureIcon é quadrado
             frame.TextureIconLeft:SetSize(iconSize / 2, iconSize + 1)
             frame.TextureIconLeft:SetPoint("LEFT", frame.TextureIcon, "LEFT", -2, 2)

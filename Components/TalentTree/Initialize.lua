@@ -67,7 +67,6 @@ end
 
 function GetTalentTreeLayout(msg)
     local listOfObjects = DeserializeMessage(DeserializerDefinitions.TalentTree_LAYOUT, msg);
-    --print(msg)
     for i, tab in ipairs(listOfObjects) do
         if tab.TalentType == CharacterPointType.TALENT_SKILL_TREE or tab.TalentType == CharacterPointType.RACIAL_TREE or
             tab.TalentType == CharacterPointType.PRESTIGE_TREE or tab.TalentType == CharacterPointType.SKILL_PAGE then
@@ -82,7 +81,6 @@ function GetTalentTreeLayout(msg)
     end)
 
     PushForgeMessage(ForgeTopic.GET_CHARACTER_SPECS, "-1")
-    -- UpdateTalentCurrentView();
 end
 
 function GetCharacterSpecs(msg)

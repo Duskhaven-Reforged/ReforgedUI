@@ -410,7 +410,6 @@ local function BuildLoadoutString()
     out = out..string.sub(Util.alpha, TalentTree.FORGE_SELECTED_TAB.Id, TalentTree.FORGE_SELECTED_TAB.Id)
     out = out..string.sub(Util.alpha, GetClassId(UnitClass("player")), GetClassId(UnitClass("player")))
 
-    -- TODO: CLASS TREE
     for _, rank in ipairs(TreeCache.Spells[TalentTree.ClassTree]) do
         out = out..string.sub(Util.alpha, rank + 1, rank + 1)
     end
@@ -453,6 +452,7 @@ function ApplyLoadoutAndUpdateCurrent(id)
 end
 
 AcceptTalentsButton:SetScript("OnClick", function()
+
     local out = ""
 
     -- tree metadata: type spec class
@@ -471,11 +471,11 @@ AcceptTalentsButton:SetScript("OnClick", function()
     end
 
     if TreeCache.PreviousString[TalentTree.FORGE_SELECTED_TAB.TalentType + 1] ~= out or TalentTree.prevLoadout ~= TalentTree.currentLoadout then
-        --print("Talent string to send: "..out.." length: "..string.len(out))
         local loadout = TalentLoadoutCache[TalentTree.FORGE_SELECTED_TAB.Id][TalentTree.currentLoadout]
         SaveLoadout(TalentTree.currentLoadout, loadout.name)
         PushForgeMessage(ForgeTopic.LEARN_TALENT, out)
     end
+
 end)
 
 local LoadoutDropButton = CreateFrame("Button", "LoadoutDropButton", TalentTreeWindow)
