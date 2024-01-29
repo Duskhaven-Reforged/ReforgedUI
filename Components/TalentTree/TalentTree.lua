@@ -567,9 +567,8 @@ end
 local function ShareTalentString()
     local talentString = GenerateTalentString()
     local name, realm = UnitName("player")
-    local fakeItemID = "123456"
+    local fakeItemID = "12345678"
     local fakeItemLink = "|cff9d9d9d|Hitem:"..fakeItemID..":::::::::::"..talentString..":::|h["..name.." Talent Build]|h|r"
-    print(fakeItemLink)
     SendChatMessage("Check out my custom talent build: " .. fakeItemLink, "SAY") -- Modifique para o canal de chat desejado
 end
 
