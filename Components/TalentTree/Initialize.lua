@@ -210,11 +210,15 @@ function LoadTalentString(msg)
             for i = 1, classTreeLen, 1 do
                 TreeCache.Spells[TalentTree.ClassTree][nodeInd] = 0;
                 local rank = string.find(Util.alpha, string.sub(classString, i, i)) - 1
-                for click = 1, rank, 1 do
-                    local location = TreeCache.IndexToFrame[TalentTree.ClassTree][nodeInd]
-                    local frame = TalentTreeWindow.GridTalent.Talents[location.row][location.col]
-                    frame:GetScript("OnUpdate")();
-                    frame:GetScript("OnMouseDown")(frame, 'LeftButton');
+                if TreeCache.ChoiceNodes[nodeInd] then
+                    TreeCache.ChoiceNodes[nodeInd][rank]:GetScript("OnMouseDown")(TreeCache.ChoiceNodes[nodeInd][rank], 'LeftButton');
+                else
+                    for click = 1, rank, 1 do
+                        local location = TreeCache.IndexToFrame[TalentTree.ClassTree][nodeInd]
+                        local frame = TalentTreeWindow.GridTalent.Talents[location.row][location.col]
+                        frame:GetScript("OnUpdate")();
+                        frame:GetScript("OnMouseDown")(frame, 'LeftButton');
+                    end
                 end
                 nodeInd = nodeInd + 1
             end

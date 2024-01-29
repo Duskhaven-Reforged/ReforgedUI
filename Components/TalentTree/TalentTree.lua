@@ -28,7 +28,8 @@ TreeCache = {
     PrereqRev = {},
     Points = {},
     PreviousString = {},
-    IndexToFrame = {}
+    IndexToFrame = {},
+    ChoiceNodes = {}
 }
 
 local Backdrop = {

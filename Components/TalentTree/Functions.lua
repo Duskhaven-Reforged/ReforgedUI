@@ -1160,27 +1160,29 @@ function InitializeViewFromGrid(children, spells, tabId)
                       Bordertexture:SetVertexColor(0, 1, 0, 1)
         end
 
-    local spellName, _, spellIcon = GetSpellInfo(choiceSpellId)
-    SetPortraitToTexture(button.texture, spellIcon)
-    button:SetPoint("CENTER", Choice_Talents, "CENTER", ((i - 1) * 60) - (30 * (#spell.Choices - 1)), 0)
-    button:Show()
+        local spellName, _, spellIcon = GetSpellInfo(choiceSpellId)
+        SetPortraitToTexture(button.texture, spellIcon)
+        button:SetPoint("CENTER", Choice_Talents, "CENTER", ((i - 1) * 60) - (30 * (#spell.Choices - 1)), 0)
+        button:Show()
 
-    button:SetScript("OnEnter", function(self)
-        CreateTooltip(spell, choiceSpellId, NextSpellId, self, CurrentRank)  -- Substitua NextSpellId e CurrentRank se necessário
-        self.IsTooltipActive = true
-    end)
+        button:SetScript("OnEnter", function(self)
+            CreateTooltip(spell, choiceSpellId, NextSpellId, self, CurrentRank)  -- Substitua NextSpellId e CurrentRank se necessário
+            self.IsTooltipActive = true
+        end)
 
-    button:SetScript("OnLeave", function(self)
-        self.IsTooltipActive = false
-    end)
-    
-    Choice_Talents:SetScript("OnHide", function(self)
-       frame.IsTooltipActive = false;
-       firstRankToolTip:Hide()
-     end)
-end
+        button:SetScript("OnLeave", function(self)
+            self.IsTooltipActive = false
+        end)
+        
+        Choice_Talents:SetScript("OnHide", function(self)
+           frame.IsTooltipActive = false;
+           firstRankToolTip:Hide()
+         end)
 
-Choice_Talents:Show()
+        TreeCache.ChoiceNodes[spell.nodeIndex] = Choice_Talents.buttons
+    end
+
+    Choice_Talents:Show()
     end
 
 end)
