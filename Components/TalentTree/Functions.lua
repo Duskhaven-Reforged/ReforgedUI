@@ -15,6 +15,13 @@ function ToggleMainWindow()
         PlaySound("TalentScreenOpen");
         ForgedWoWMicrobarButton:SetButtonState("PUSHED", 1);
     end
+    if ClassSpecWindow:IsShown() then
+        ClassSpecWindow:Hide()
+        PlaySound("TalentScreenClose");
+        ForgedWoWMicrobarButton:SetButtonState("NORMAL");
+    else
+        ForgedWoWMicrobarButton:SetButtonState("PUSHED", 1);
+    end
     if SpellBookFrame:IsShown() then
         SpellBookFrame:Hide();
     end
@@ -842,7 +849,7 @@ function InitializeGridForTalent()
     local spaceBetweenNodes = 30; 
     local gridRows = 30;
     local totalGridCols = 22;
-	local MaxColumns = 11;
+	local Tree2_X = 115;
 
     for i = 0, gridRows - 1 do
         if not TalentTreeWindow.GridTalent.Talents[i] then
@@ -850,18 +857,21 @@ function InitializeGridForTalent()
         end
 
         for j = 0, totalGridCols - 1 do
-            -- Ajustando a lógica de determinação da árvore
-            local tree;
 
-            local basePosX, basePosY = -600, -300;
+            local basePosX, basePosY = -728, -300;
 
-            -- Posições de X e Y
             local posX, posY;
             posX = basePosX + (j * (visualizationSize + spaceBetweenNodes));
             posY = basePosY + (i * (visualizationSize + spaceBetweenNodes));
+			
+			
+			--Tree 2
+			if j >= 12 then
+              posX = posX + Tree2_X;
+            end
 
             if not TalentTreeWindow.GridTalent.Talents[i][j] then
-                    TalentTreeWindow.GridTalent.Talents[i][j] = CreateFrame("Button", nil, TalentTreeWindow.GridTalent);
+                    TalentTreeWindow.GridTalent.Talents[i][j] = CreateFrame("Button", "TalentTreeWindow.GridTalent.Talents"..i, TalentTreeWindow.GridTalent);
                     TalentTreeWindow.GridTalent.Talents[i][j]:SetPoint("CENTER", posX, posY);
                     TalentTreeWindow.GridTalent.Talents[i][j]:SetFrameLevel(9);
                     TalentTreeWindow.GridTalent.Talents[i][j]:SetSize(visualizationSize, visualizationSize);
@@ -1515,7 +1525,7 @@ function InitializeGridForForgeSkills()
         local posY = 0;
         for j = 1, 9 do
             TalentTreeWindow.GridForgeSkill.Talents[i][j] = CreateFrame("Button",
-                TalentTreeWindow.GridForgeSkill.Talents[i][j], TalentTreeWindow.GridForgeSkill);
+            TalentTreeWindow.GridForgeSkill.Talents[i][j], TalentTreeWindow.GridForgeSkill);
             TalentTreeWindow.GridForgeSkill.Talents[i][j]:SetPoint("CENTER", posX, posY)
             TalentTreeWindow.GridForgeSkill.Talents[i][j]:SetFrameLevel(9);
             TalentTreeWindow.GridForgeSkill.Talents[i][j]:SetSize(30, 30);

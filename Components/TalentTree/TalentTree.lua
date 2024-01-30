@@ -41,7 +41,46 @@ local Backdrop = {
 
 TalentTreeWindow = CreateFrame("Frame", "TalentFrame", UIParent);
 TalentTreeWindow:SetSize(1000, 800)
-TalentTreeWindow:SetPoint("CENTER", 0, 50) --- LEFT/RIGHT -- --UP/DOWN --
+TalentTreeWindow:SetScale(0.9)
+TalentTreeWindow:SetPoint("CENTER", 0, 50)
+TalentTreeWindow:SetFrameLevel(1);
+TalentTreeWindow:SetFrameStrata("MEDIUM")
+TalentTreeWindow:Hide()
+
+local ConfigFrame = CreateFrame("Frame", "ConfigFrame", TalentTreeWindow)
+ConfigFrame:SetSize(500, 400) -- Tamanho do frame de configuração
+ConfigFrame:SetPoint("TOP", TalentTreeWindow, "TOP", 0, -50) -- Centraliza no TalentTreeWindow
+ConfigFrame:SetFrameStrata("HIGH")
+ConfigFrame:SetBackdrop({
+    bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background", -- Textura de fundo
+    edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border", -- Borda
+    tile = true,
+    tileSize = 32,
+    edgeSize = 32,
+    insets = { left = 8, right = 8, top = 8, bottom = 8 }
+})
+ConfigFrame:SetBackdropColor(0, 0, 0, 1) -- Cor de fundo
+ConfigFrame:Hide()
+
+local headerTexture = ConfigFrame:CreateTexture(nil, "ARTWORK")
+headerTexture:SetTexture("Interface\\DialogFrame\\UI-DialogBox-Header") -- caminho para a textura do cabeçalho
+headerTexture:SetSize(256, 64) -- O tamanho da textura pode variar, ajuste conforme necessário
+headerTexture:SetPoint("TOP", ConfigFrame, "TOP", 0, 12) -- Ajuste a posição Y conforme necessário
+
+local headerText = ConfigFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+headerText:SetPoint("CENTER", headerTexture, "CENTER", 0, 12)
+headerText:SetText("Configuration") -- Defina o texto do cabeçalho conforme necessário
+
+
+-- Botão de fechamento
+local closeButton = CreateFrame("Button", nil, ConfigFrame, "UIPanelCloseButton")
+closeButton:SetPoint("TOPRIGHT", ConfigFrame, "TOPRIGHT", -5, -5)
+closeButton:SetScript("OnClick", function() ConfigFrame:Hide() end)
+
+TalentTreeWindow.ConfigFrame = CreateFrame("Frame", "TalentFrame", UIParent);
+TalentTreeWindow:SetSize(1000, 800)
+TalentTreeWindow:SetScale(0.9)
+TalentTreeWindow:SetPoint("CENTER", 0, 50)
 TalentTreeWindow:SetFrameLevel(1);
 TalentTreeWindow:SetFrameStrata("MEDIUM")
 TalentTreeWindow:Hide()
@@ -207,7 +246,6 @@ local function AdjustFrameScale(frame)
     frame:SetScale(newScale)
 end
 
-
 -- Evento acionado quando a tela é redimensionada
 UIParent:SetScript("OnSizeChanged", function(self, width, height)
     AdjustFrameScale(TalentTreeWindow)
@@ -254,13 +292,36 @@ SpecTitleText:SetText("Specializations")
 local windows = {TalentTreeWindow, ClassSpecWindow}
 
 for i, window in ipairs(windows) do
-local closeButton = CreateFrame("Button", "CloseTalentUI" .. i, window, "UIPanelCloseButton")
-closeButton:SetSize(40, 40) 
+local closeButton = CreateFrame("Button", "CloseTalentUI" .. i, window)
+closeButton:SetSize(30, 30) 
 closeButton:SetFrameLevel(100)
+closeButton:SetFrameStrata("FULLSCREEN")
+
+closeButton:SetNormalTexture("Interface\\AddOns\\ForgedWoWCommunication\\UI\\Buttons\\NormalClose.blp") 
+closeButton:SetHighlightTexture("Interface\\AddOns\\ForgedWoWCommunication\\UI\\Buttons\\NormalClose_Highlight.blp")
+closeButton:SetPushedTexture("Interface\\AddOns\\ForgedWoWCommunication\\UI\\Buttons\\NormalClose_Pushed.blp")
 
 closeButton:SetScript("OnClick", function()
     window:Hide()
 end)
+
+local configButton = CreateFrame("Button", "ConfigButtonButton" .. i , closeButton)
+configButton:SetSize(30, 30)
+configButton:SetFrameLevel(100)
+configButton:SetFrameStrata("FULLSCREEN")
+
+configButton:SetNormalTexture("Interface\\AddOns\\ForgedWoWCommunication\\UI\\Buttons\\ConfigButton.blp") 
+configButton:SetHighlightTexture("Interface\\AddOns\\ForgedWoWCommunication\\UI\\Buttons\\NormalClose_Highlight.blp")
+configButton:SetPushedTexture("Interface\\AddOns\\ForgedWoWCommunication\\UI\\Buttons\\ConfigButton_Pushed.blp")
+
+configButton:SetScript("OnClick", function()
+if not ConfigFrame:IsVisible() then
+    ConfigFrame:Show()
+	else
+	ConfigFrame:Hide()
+end
+end)
+
 
 ClassIconTexture = window:CreateTexture(nil, "ARTWORK")
 ClassIconTexture:SetTexture(CONSTANTS.UI.MAIN_BG)
@@ -278,11 +339,13 @@ LockoutTexture:SetDrawLayer("BACKGROUND", -1)
 ClassSpecWindow.Lockout.texture = texture
 
         if window == TalentTreeWindow then
-        closeButton:SetPoint("TOPRIGHT", window, "TOPRIGHT", 190, 8) 
+        closeButton:SetPoint("TOPRIGHT", window, "TOPRIGHT", 180, 4) 
         ClassIconTexture:SetPoint("TOPLEFT", window, "TOPLEFT", -241, 12) 
+		configButton:SetPoint("LEFT", closeButton, "RIGHT", -70, 0) 
     elseif window == ClassSpecWindow then
-         closeButton:SetPoint("TOPRIGHT", window, "TOPRIGHT", 190, 8)
+         closeButton:SetPoint("TOPRIGHT", window, "TOPRIGHT", 180, 4)
          ClassIconTexture:SetPoint("TOPLEFT", window, "TOPLEFT", -241, 12)
+		 configButton:SetPoint("LEFT", closeButton, "RIGHT", -50, 0) 
     end
 
     
@@ -291,7 +354,7 @@ end
 
 TalentTreeWindow.Container = CreateFrame("Frame", "Talent.Background", TalentTreeWindow);
 TalentTreeWindow.Container:SetSize(TalentTreeWindow:GetWidth() * 1.42, TalentTreeWindow:GetHeight() * 0.925); -- Talent Tree Window's Background --
-TalentTreeWindow.Container:SetPoint("CENTER", -20, 0)
+TalentTreeWindow.Container:SetPoint("CENTER", 0, 0)
 TalentTreeWindow.Container:SetFrameStrata("MEDIUM");
 
 
@@ -332,37 +395,9 @@ TalentTreeWindow.ChoiceSpecs:Show();
 table.insert(UISpecialFrames, "TalentTreeWindow")
 table.insert(UISpecialFrames, "ClassSpecWindow")
 
--- Define your popup dialog
-StaticPopupDialogs["CONFIRM_TALENT_WIPE"] = {
-    text = "Are you sure you want to reset all of your talents?",
-    button1 = "Yes",
-    button2 = "No",
-    OnAccept = function()
-        local playerLevel = UnitLevel("player") -- Get the player's level
-        if playerLevel >= 10 then
-            RevertAllTalents()
-            DEFAULT_CHAT_FRAME:AddMessage("Your talents have been reset.", 1, 1, 0) -- Sends a yellow message
-        else
-            DEFAULT_CHAT_FRAME:AddMessage("You must be at least level 10 to reset talents.", 1, 0, 0) -- Sends a red error message
-        end
-        StaticPopup_Hide("CONFIRM_TALENT_WIPE")
-    end,
-    timeout = 0,
-    whileDead = true,
-    hideOnEscape = true,
-    preferredIndex = 3, -- prevent taint from Blizzard UI
-    OnShow = function(self)
-        self:ClearAllPoints()
-        self:SetPoint("CENTER", 50, 250) -- position it to center
-        self:SetSize(800, 800) -- adjust the size as necessary
-    end
-
-}
-
-
 local AcceptTalentsButton = CreateFrame("Button", "AcceptTalentsButton", TalentTreeWindow, "UIPanelButtonTemplate")
 AcceptTalentsButton:SetSize(200, 30)
-AcceptTalentsButton:SetPoint("BOTTOM", 0, 45) -- Position the button at the top right of the TalentTreeWindow
+AcceptTalentsButton:SetPoint("BOTTOM", 0, 30) -- Position the button at the top right of the TalentTreeWindow
 AcceptTalentsButton:SetText("Apply Changes")
 AcceptTalentsButton:Show()
 
@@ -376,12 +411,13 @@ resetButton:SetScript("OnClick", function()
     StaticPopup_Show("CONFIRM_TALENT_WIPE")
 end)
 
-local alphaSlider = CreateFrame("Slider", "AlphaSlider", TalentTreeWindow, "OptionsSliderTemplate")
+--[[Configs]]--
+local alphaSlider = CreateFrame("Slider", "AlphaSlider", ConfigFrame, "OptionsSliderTemplate")
 alphaSlider:SetMinMaxValues(0, 1)
 alphaSlider:SetValueStep(0.01)  
 alphaSlider:SetWidth(200)  
 alphaSlider:SetHeight(20)  
-alphaSlider:SetPoint("BOTTOM", AcceptTalentsButton, "BOTTOM", 0, -20)  -- Posiciona a SliderBar
+alphaSlider:SetPoint("TOPLEFT", ConfigFrame, "TOPLEFT", 40, -50)  -- Posiciona a SliderBar
 
 local lowText = alphaSlider:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
 lowText:SetPoint("TOPLEFT", alphaSlider, "BOTTOMLEFT", 2, 3)
@@ -390,7 +426,7 @@ local highText = alphaSlider:CreateFontString(nil, "ARTWORK", "GameFontNormalSma
 highText:SetPoint("TOPRIGHT", alphaSlider, "BOTTOMRIGHT", -2, 3)
 
 local titleText = alphaSlider:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
-titleText:SetPoint("TOP", alphaSlider, "BOTTOM", 0, 3)
+titleText:SetPoint("TOP", alphaSlider, "TOP", 0, 10)
 titleText:SetText("Background Transparence")
 
 -- Define a função para o evento OnValueChanged
@@ -401,7 +437,140 @@ end)
 -- Define o valor inicial do alpha
 alphaSlider:SetValue(1)  -- Começa com alpha 1 (totalmente opaco)
 
---Testing--
+-- Cria a ScaleSlider
+local scaleSlider = CreateFrame("Slider", "ScaleSlider", ConfigFrame, "OptionsSliderTemplate")
+scaleSlider:SetMinMaxValues(0.5, 2) -- Define os valores mínimos e máximos. Por exemplo, de 0.5 (50%) a 2 (200%)
+scaleSlider:SetValueStep(0.01)
+scaleSlider:SetWidth(200)
+scaleSlider:SetHeight(20)
+scaleSlider:SetPoint("BOTTOM", alphaSlider, "BOTTOM", 0, -50)
+scaleSlider:EnableMouse(false)
+
+local scaleTitleText = scaleSlider:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+scaleTitleText:SetPoint("TOP", scaleSlider, "TOP", 0, 10)
+scaleTitleText:SetText("Scale Adjustment")
+
+local decreaseButton = CreateFrame("Button", nil, ConfigFrame, "UIPanelButtonTemplate")
+decreaseButton:SetSize(20, 20)
+decreaseButton:SetPoint("RIGHT", scaleSlider, "LEFT", -5, 0)
+decreaseButton:SetText("-")
+
+-- Cria o botão de aumentar (+)
+local increaseButton = CreateFrame("Button", nil, ConfigFrame, "UIPanelButtonTemplate")
+increaseButton:SetSize(20, 20)
+increaseButton:SetPoint("LEFT", scaleSlider, "RIGHT", 5, 0)
+increaseButton:SetText("+")
+
+local function UpdateScale(value)
+    local currentScale = TalentTreeWindow:GetScale()
+    local newScale = currentScale + value
+    if newScale >= 0.6 and newScale <= 0.9 then
+        newScale = math.max(0.5, math.min(newScale, 2))
+        TalentTreeWindow:SetScale(newScale)
+        scaleSlider:SetValue(newScale)
+    end
+end
+
+decreaseButton:SetScript("OnClick", function()
+    UpdateScale(-0.01)
+end)
+
+increaseButton:SetScript("OnClick", function()
+    UpdateScale(0.01) -- Aumenta a escala
+end)
+
+local function SetColorRecursive(frame, backgroundColor)
+    -- Define a cor do fundo se possível
+    if frame.SetBackdropColor then
+        frame:SetBackdropColor(unpack(backgroundColor))
+    end
+    -- Define a cor para regiões texturizadas se aplicável
+    local regions = { frame:GetRegions() }
+    for _, region in ipairs(regions) do
+        if region.SetVertexColor and region:IsObjectType('Texture') then
+            region:SetVertexColor(unpack(backgroundColor))
+        end
+    end
+    -- Aplica recursivamente para todos os elementos filhos
+    local children = { frame:GetChildren() }
+    for _, child in ipairs(children) do
+        SetColorRecursive(child, backgroundColor)
+    end
+end
+
+local colorBlindModes = {
+    { text = "None", colorScheme = {0.2, 0.2, 0.2, 1} },
+    { text = "Protanopia", colorScheme = {0.8, 0.2, 0.2, 1} },
+    { text = "Deuteranopia", colorScheme = {0.2, 0.8, 0.2, 1} },
+    { text = "Tritanopia", colorScheme = {0.2, 0.2, 0.8, 1} },
+}
+
+-- Cria o dropdown menu
+local colorBlindModeDropdown = CreateFrame("Frame", "ColorBlindModeDropdown", ConfigFrame, "UIDropDownMenuTemplate")
+colorBlindModeDropdown:SetPoint("TOPRIGHT", ConfigFrame, "TOPRIGHT", 0, -60)
+
+local ColorblindText = colorBlindModeDropdown:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+ColorblindText:SetPoint("TOP", colorBlindModeDropdown, "TOP", 0, 10)
+ColorblindText:SetText("Colorblind Modes")
+
+-- Inicializa o dropdown menu
+UIDropDownMenu_SetWidth(colorBlindModeDropdown, 150)
+UIDropDownMenu_SetText(colorBlindModeDropdown, "Colorblind Modes")
+
+local function SetDefaultColors(frame)
+    if frame.SetBackdropColor then
+        -- Defina a cor de fundo padrão do frame aqui
+        frame:SetBackdropColor(0, 0, 0, 0.7) -- cor padrão que você deseja
+    end
+
+    local regions = {frame:GetRegions()}
+    for _, region in ipairs(regions) do
+        if region.SetVertexColor and region:IsObjectType('Texture') then
+            -- Defina a cor da textura padrão aqui
+            region:SetVertexColor(1, 1, 1, 1) -- cor padrão que você deseja
+        end
+    end
+
+    local children = {frame:GetChildren()}
+    for _, child in ipairs(children) do
+        SetDefaultColors(child)
+    end
+end
+
+-- Função para redefinir as cores para os valores padrão
+local function ResetToDefaultColors()
+    SetDefaultColors(TalentTreeWindow)
+    -- Repita isso para outros elementos principais que tenham sua cor alterada
+    -- por exemplo, se você tiver outros frames principais, faça isso:
+    -- SetDefaultColors(OutroFramePrincipal)
+end
+
+-- Restante do código...
+
+-- Função para inicializar os itens do menu
+UIDropDownMenu_Initialize(colorBlindModeDropdown, function(self, level, menuList)
+    local info = UIDropDownMenu_CreateInfo()
+    for k, v in ipairs(colorBlindModes) do
+        info.text = v.text
+        info.checked = nil
+        info.func = function()
+            UIDropDownMenu_SetSelectedID(colorBlindModeDropdown, k)
+            if v.text == "None" then
+                -- Redefine as cores para os valores padrão
+                ResetToDefaultColors()
+            else
+                -- Define a nova cor
+                SetColorRecursive(TalentTreeWindow, v.colorScheme)
+            end
+        end
+        UIDropDownMenu_AddButton(info)
+    end
+end)
+
+
+--[[Configs End]]--
+
+
 TalentLoadoutCache = TalentTree.TalentLoadoutCache
 
 local function BuildLoadoutString()
@@ -478,6 +647,33 @@ AcceptTalentsButton:SetScript("OnClick", function()
     end
 
 end)
+
+-- Define your popup dialog
+StaticPopupDialogs["CONFIRM_TALENT_WIPE"] = {
+    text = "Are you sure you want to reset all of your talents?",
+    button1 = "Yes",
+    button2 = "No",
+    OnAccept = function()
+        local playerLevel = UnitLevel("player") -- Get the player's level
+        if playerLevel >= 10 then
+            RevertAllTalents()
+            DEFAULT_CHAT_FRAME:AddMessage("Your talents have been reset.", 1, 1, 0)
+        else
+            DEFAULT_CHAT_FRAME:AddMessage("You must be at least level 10 to reset talents.", 1, 0, 0) -- Sends a red error message
+        end
+        StaticPopup_Hide("CONFIRM_TALENT_WIPE")
+    end,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+    preferredIndex = 3, -- prevent taint from Blizzard UI
+    OnShow = function(self)
+        self:ClearAllPoints()
+        self:SetPoint("CENTER", 50, 250) -- position it to center
+        self:SetSize(800, 800) -- adjust the size as necessary
+    end
+
+}
 
 local LoadoutDropButton = CreateFrame("Button", "LoadoutDropButton", TalentTreeWindow)
 LoadoutDropButton:SetPoint("BOTTOMLEFT", TalentTreeWindow, "BOTTOMLEFT", -200, 35)
