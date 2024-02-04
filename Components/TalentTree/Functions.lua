@@ -100,7 +100,6 @@ local function UpdateActivateSpecButton(tab)
         UpdateButtonTexture(button, "pushed", textures.pushed)
         UpdateButtonTexture(button, "highlight", textures.highlight)
 
-
         button:GetFontString():SetTextColor(1, 1, 1)
     end
 end
@@ -236,30 +235,31 @@ function IsNodeUnlocked(talent, CurrentRank)
 end
 
 function DrawNode(startPosition, endPosition, parentFrame, parent, offSet, talent, CurrentRank, previousSpell)
-    local nodeSize = 0.05 
-    local x1 = startPosition.x + nodeSize / 2
-    local y1 = startPosition.y + nodeSize / 2
-    local x2 = endPosition.x + nodeSize / 2
-    local y2 = endPosition.y + nodeSize / 2
+    local nodeSize = 0.05
+
+    local x1 = startPosition.x
+    local y1 = startPosition.y
+    local x2 = endPosition.x
+    local y2 = endPosition.y
 
     local dx = x1 - x2
     local dy = y2 - y1
-    local angle = math.atan2(dy, dx)
+    local angle = math.deg(math.atan2(startPosition.y - endPosition.y, startPosition.x - endPosition.x))
     local length = math.sqrt((x2 - x1)^2 + (y2 - y1)^2)
-    local cx = (x1 + x2) / 2
-    local cy = (y1 + y2) / 2
+
+    local cx = ((startPosition.x + endPosition.x) / 2)
+    local cy = ((startPosition.y + endPosition.y) / 2)
 
     if dy ~= 0 and dx == 0 then
       cx = cx - 1
     end
 
 
-if not parentFrame.node[talent.SpellId] then
-    parentFrame.node[talent.SpellId] = CreateFrame("Frame", parentFrame.node[talent.SpellId], parent)
-    parentFrame.node[talent.SpellId]:SetSize(length - 30, 12) 
-    parentFrame.node[talent.SpellId]:SetPoint("CENTER", cx, cy)
-	
-	
+    if not parentFrame.node[talent.SpellId] then
+        parentFrame.node[talent.SpellId] = CreateFrame("Frame", parentFrame.node[talent.SpellId], parent)
+        parentFrame.node[talent.SpellId]:SetSize(length - 30, 12) 
+        parentFrame.node[talent.SpellId]:SetPoint("CENTER", cx, cy)
+    	
         if IsNodeUnlocked(talent, CurrentRank) then
             parentFrame.node[talent.SpellId]:SetBackdrop({
                 bgFile = CONSTANTS.UI.CONNECTOR
@@ -270,44 +270,17 @@ if not parentFrame.node[talent.SpellId] then
             })
         end
 
-		
-    local angleToSet
-
-    if y2 > y1 then
-        if x2 == x1 then
-            angleToSet = 180
-        elseif x2 > x1 then
-            angleToSet = 35
-        else
-            angleToSet = -35
-        end
-    elseif y2 < y1 then
-        if x2 == x1 then
-            angleToSet = -90
-        elseif x2 > x1 then
-            angleToSet = -35
-        else
-            angleToSet = 35
-        end
-    else
-        if x2 > x1 then
-            angleToSet = 0
-        else
-            angleToSet = 180
-        end
-    end   
-
 
         parentFrame.node[talent.SpellId].animation = parentFrame.node[talent.SpellId]:CreateAnimationGroup()
         parentFrame.node[talent.SpellId].animation.spin = parentFrame.node[talent.SpellId].animation:CreateAnimation(
             "Rotation")
         parentFrame.node[talent.SpellId].animation.spin:SetOrder(1)
         parentFrame.node[talent.SpellId].animation.spin:SetDuration(0)
-        parentFrame.node[talent.SpellId].animation.spin:SetDegrees(angleToSet)
-
+        parentFrame.node[talent.SpellId].animation.spin:SetDegrees(angle)
         parentFrame.node[talent.SpellId].animation.spin:SetEndDelay(999999)
-        parentFrame.node[talent.SpellId].animation:Play()
 
+        parentFrame.node[talent.SpellId].animation:Stop()
+        parentFrame.node[talent.SpellId].animation:Play()
     end
 end
 
@@ -860,8 +833,7 @@ function InitializeGridForTalent()
             local posX, posY;
             posX = basePosX + (j * (visualizationSize + spaceBetweenNodes));
             posY = basePosY + (i * (visualizationSize + spaceBetweenNodes));
-			
-			
+
 			--Tree 2
 			if j >= 12 then
               posX = posX + Tree2_X;
@@ -911,21 +883,11 @@ function FindPreReq(spells, spellId)
     end
 end
 
-function InitializePreReqAndDrawNodes(spells, spellNode, children, parent, offset, CurrentRank)
+function InitializePreReqAndDrawNodes(spells, spellNode, children, parent, offset, CurrentRank, tabId)
     for _, pr in pairs(spellNode.Prereqs) do
         local previousSpell = FindPreReq(spells, tonumber(pr.Talent))
         local previousSpellFrame = children[tonumber(previousSpell.ColumnIndex)][tonumber(previousSpell.RowIndex)]
         local spellNodeFrame = children[tonumber(spellNode.ColumnIndex)][tonumber(spellNode.RowIndex)]
-
-        local previousSpellX, previousSpellY = previousSpellFrame:GetCenter()
-        local spellNodeX, spellNodeY = spellNodeFrame:GetCenter()
-
-        -- Aqui estamos assumindo que parent é o frame total do painel de talentos.
-        local parentBottom = select(5, parent:GetPoint("BOTTOM"))
-
-        -- Ajustar as coordenadas y para serem relativas à parte inferior do frame parent
-        local adjustedStartY = previousSpellY - parentBottom
-        local adjustedEndY = spellNodeY - parentBottom
 
         local lineTexture = parent:CreateTexture(nil, "OVERLAY")
         lineTexture:SetDrawLayer("ARTWORK", 7)
@@ -937,7 +899,17 @@ function InitializePreReqAndDrawNodes(spells, spellNode, children, parent, offse
             lineTexture:SetTexture(CONSTANTS.UI.CONNECTOR_DISABLED)
         end
 
-        DrawRouteLine(lineTexture, parent, previousSpellX, adjustedStartY, spellNodeX, adjustedEndY, width, "BOTTOM")
+        local srclocation = TreeCache.IndexToFrame[tabId][spellNode.nodeIndex]
+        local srcFrame = TalentTreeWindow.GridTalent.Talents[srclocation.row][srclocation.col]
+
+        local destlocation = TreeCache.IndexToFrame[tabId][previousSpell.nodeIndex]
+        local destFrame = TalentTreeWindow.GridTalent.Talents[destlocation.row][destlocation.col]
+
+        local startPosition = GetPositionXY(srcFrame);
+        local endPosition = GetPositionXY(destFrame);
+        DrawNode(startPosition, endPosition,
+            children[tonumber(previousSpell.ColumnIndex)][tonumber(previousSpell.RowIndex)], parent, offset, spellNode,
+            CurrentRank, previousSpell);
     end
 end
 
@@ -1075,7 +1047,9 @@ function InitializeViewFromGrid(children, spells, tabId)
               Choice_Talents:Hide()
             
         if spell.Prereqs then
-            InitializePreReqAndDrawNodes(spells, spell, children.Talents, children, offset, CurrentRank)
+            if next(spell.Prereqs) then
+                InitializePreReqAndDrawNodes(spells, spell, children.Talents, children, 0, CurrentRank, tabId)
+            end
         end
         frame.Init = true;
         if NumberOfRanks == 0 then
