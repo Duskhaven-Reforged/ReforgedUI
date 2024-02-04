@@ -175,75 +175,73 @@ function LoadTalentString(msg)
         if not TreeCache.PreviousString[type] then
             TreeCache.PreviousString[type] = "empty :)"
         end
-        --if msg ~= TreeCache.PreviousString[type] then
-            if not TalentTree.FORGE_TALENTS then
-                TalentTree.FORGE_TALENTS = {};
-            end
+        if not TalentTree.FORGE_TALENTS then
+            TalentTree.FORGE_TALENTS = {};
+        end
 
-            local specTreeLen = 0
-            if TreeCache.Spells[tostring(spec)] then
-                specTreeLen = #TreeCache.Spells[tostring(spec)]
-            end
+        local specTreeLen = 0
+        if TreeCache.Spells[tostring(spec)] then
+            specTreeLen = #TreeCache.Spells[tostring(spec)]
+        end
 
-            local classTreeLen = 0
-            classTreeLen = #TreeCache.Spells[TalentTree.ClassTree]
-            -- ZERO EVERY STRUCT
-            TreeCache.Points[tostring(type-1)] = TalentTree.MaxPoints[tostring(type-1)]
-            TreeCache.PointsSpent[tostring(spec)] = 0
+        local classTreeLen = 0
+        classTreeLen = #TreeCache.Spells[TalentTree.ClassTree]
+        -- ZERO EVERY STRUCT
+        TreeCache.Points[tostring(type-1)] = TalentTree.MaxPoints[tostring(type-1)]
+        TreeCache.PointsSpent[tostring(spec)] = 0
 
-            if type - 1 == 0 then
-                TreeCache.Points["7"] = TalentTree.MaxPoints["7"]
-                TreeCache.PointsSpent["7"] = 0
-            end
+        if type - 1 == 0 then
+            TreeCache.Points["7"] = TalentTree.MaxPoints["7"]
+            TreeCache.PointsSpent["7"] = 0
+        end
 
-            for i = 0, 50, 5 do
-                TreeCache.Investments[tostring(spec)][i] = 0
-                TreeCache.Investments[TalentTree.ClassTree][i] = 0
-                TreeCache.TotalInvests[i] = 0
-            end
+        for i = 0, 50, 5 do
+            TreeCache.Investments[tostring(spec)][i] = 0
+            TreeCache.Investments[TalentTree.ClassTree][i] = 0
+            TreeCache.TotalInvests[i] = 0
+        end
 
-            SelectTab(TalentTree.FORGE_TABS[spec])
+        SelectTab(TalentTree.FORGE_TABS[spec])
 
-            local nodeInd = 1
-            local classBlock = 3 + classTreeLen
-            local classString = string.sub(msg, 4, classBlock)
-            for i = 1, classTreeLen, 1 do
-                TreeCache.Spells[TalentTree.ClassTree][nodeInd] = 0;
-                local rank = string.find(Util.alpha, string.sub(classString, i, i)) - 1
-                if TreeCache.ChoiceNodes[nodeInd] then
-                    if rank then
-                        TreeCache.ChoiceNodes[nodeInd][rank]:GetScript("OnMouseDown")(TreeCache.ChoiceNodes[nodeInd][rank], 'LeftButton');
-                    end
-                else
-                    for click = 1, rank, 1 do
-                        local location = TreeCache.IndexToFrame[TalentTree.ClassTree][nodeInd]
-                        local frame = TalentTreeWindow.GridTalent.Talents[location.row][location.col]
-                        frame:GetScript("OnUpdate")();
-                        frame:GetScript("OnMouseDown")(frame, 'LeftButton');
-                    end
+        local nodeInd = 1
+        local classBlock = 3 + classTreeLen
+        local classString = string.sub(msg, 4, classBlock)
+        for i = 1, classTreeLen, 1 do
+            TreeCache.Spells[TalentTree.ClassTree][nodeInd] = 0;
+            local rank = string.find(Util.alpha, string.sub(classString, i, i)) - 1
+            if TreeCache.ChoiceNodes[nodeInd] then
+                if rank and TreeCache.ChoiceNodes[nodeInd][rank] then
+                    TreeCache.ChoiceNodes[nodeInd][rank]:GetScript("OnMouseDown")(TreeCache.ChoiceNodes[nodeInd][rank], 'LeftButton');
                 end
-                nodeInd = nodeInd + 1
-            end
-
-            local specBlock = classBlock + specTreeLen
-            --print("starts: "..(classBlock+1).." ends: "..specBlock)
-            local nodeInd = 1
-            local specString = string.sub(msg, classBlock+1, specBlock)
-            for i = 1, specTreeLen, 1 do
-                TreeCache.Spells[tostring(spec)][nodeInd] = 0;
-                local rank = string.find(Util.alpha, string.sub(specString, i, i)) - 1
+            else
                 for click = 1, rank, 1 do
-                    local location = TreeCache.IndexToFrame[tostring(spec)][nodeInd]
+                    local location = TreeCache.IndexToFrame[TalentTree.ClassTree][nodeInd]
                     local frame = TalentTreeWindow.GridTalent.Talents[location.row][location.col]
                     frame:GetScript("OnUpdate")();
                     frame:GetScript("OnMouseDown")(frame, 'LeftButton');
                 end
-                nodeInd = nodeInd + 1
             end
-
-            TreeCache.PreviousString[type] = msg
+            nodeInd = nodeInd + 1
         end
-    --end
+
+        local specBlock = classBlock + specTreeLen
+        --print("starts: "..(classBlock+1).." ends: "..specBlock)
+        local nodeInd = 1
+        local specString = string.sub(msg, classBlock+1, specBlock)
+        for i = 1, specTreeLen, 1 do
+            TreeCache.Spells[tostring(spec)][nodeInd] = 0;
+            local rank = string.find(Util.alpha, string.sub(specString, i, i)) - 1
+            for click = 1, rank, 1 do
+                local location = TreeCache.IndexToFrame[tostring(spec)][nodeInd]
+                local frame = TalentTreeWindow.GridTalent.Talents[location.row][location.col]
+                frame:GetScript("OnUpdate")();
+                frame:GetScript("OnMouseDown")(frame, 'LeftButton');
+            end
+            nodeInd = nodeInd + 1
+        end
+
+        TreeCache.PreviousString[type] = msg
+    end
 end
 
 SubscribeToForgeTopic(ForgeTopic.GET_LOADOUTS, function(msg)

@@ -45,7 +45,6 @@ TalentTreeWindow:SetScale(0.9)
 TalentTreeWindow:SetPoint("CENTER", 0, 50)
 TalentTreeWindow:SetFrameLevel(1);
 TalentTreeWindow:SetFrameStrata("MEDIUM")
-TalentTreeWindow:Hide()
 
 local ConfigFrame = CreateFrame("Frame", "ConfigFrame", TalentTreeWindow)
 ConfigFrame:SetSize(500, 400) -- Tamanho do frame de configuração
@@ -83,7 +82,6 @@ TalentTreeWindow:SetScale(0.9)
 TalentTreeWindow:SetPoint("CENTER", 0, 50)
 TalentTreeWindow:SetFrameLevel(1);
 TalentTreeWindow:SetFrameStrata("MEDIUM")
-TalentTreeWindow:Hide()
 
 TalentTreeWindow:SetScript("OnHide", function(self)
     ForgedWoWMicrobarButton:SetButtonState("NORMAL");
@@ -102,7 +100,6 @@ ClassSpecWindow:SetSize(1000, 800)
 ClassSpecWindow:SetPoint("CENTER", 0, 50) --- LEFT/RIGHT -- --UP/DOWN --
 ClassSpecWindow:SetFrameLevel(1);
 ClassSpecWindow:SetFrameStrata("MEDIUM")
-ClassSpecWindow:Hide()
 
 ClassSpecWindow:SetScript("OnUpdate", function(self)
  if ClassSpecWindow:IsVisible() then

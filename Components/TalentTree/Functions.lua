@@ -447,9 +447,6 @@ function SelectTab(tab)
         UpdateActivateSpecButton(tab)
      end
 
-    TalentTreeWindow:Hide()
-    ClassSpecWindow:Hide()
-
 end
 	 
 function GetPointByCharacterPointType(type)
@@ -1187,7 +1184,7 @@ function InitializeViewFromGrid(children, spells, tabId)
         Choice_Talents:SetScript("OnHide", function(self)
            frame.IsTooltipActive = false;
            firstRankToolTip:Hide()
-         end)
+        end)
 
         TreeCache.ChoiceNodes[spell.nodeIndex] = Choice_Talents.buttons
     end
