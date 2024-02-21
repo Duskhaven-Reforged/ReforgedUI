@@ -156,7 +156,7 @@ function RevertAllTalents ()
     end
 
     ClassSpecWindow.Lockout:Hide()
-    TalentTreeWindow:Show()
+    --TalentTreeWindow:Show()
     ClassSpecWindow:Hide()
 end
 

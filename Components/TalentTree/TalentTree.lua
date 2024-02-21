@@ -342,7 +342,7 @@ ClassSpecWindow.Lockout.texture = texture
     elseif window == ClassSpecWindow then
          closeButton:SetPoint("TOPRIGHT", window, "TOPRIGHT", 180, 4)
          ClassIconTexture:SetPoint("TOPLEFT", window, "TOPLEFT", -241, 12)
-		 configButton:SetPoint("LEFT", closeButton, "RIGHT", -50, 0) 
+		 configButton:SetPoint("LEFT", closeButton, "RIGHT", -70, 0) 
     end
 
     
@@ -464,6 +464,7 @@ local function UpdateScale(value)
     if newScale >= 0.6 and newScale <= 0.9 then
         newScale = math.max(0.5, math.min(newScale, 2))
         TalentTreeWindow:SetScale(newScale)
+		ClassSpecWindow:SetScale(newScale)
         scaleSlider:SetValue(newScale)
     end
 end
