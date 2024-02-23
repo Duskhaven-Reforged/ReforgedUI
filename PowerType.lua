@@ -121,8 +121,6 @@ if not isAlternateBar and unit == "player" and PlayerFrameAlternateManaBar and n
         borderTexture:Hide()
     end
 
-    -- Chama a função para atualizar o texto com a abreviação
-
     alternateManaBarAdjusted = true
 end
 end

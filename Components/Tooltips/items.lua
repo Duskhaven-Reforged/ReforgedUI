@@ -88,8 +88,11 @@ local function addTertiaryStats(tooltip)
     end
 end
 
+
+
+--[[DISABLED TO RETURN DEBUFF TOOLTIPS]]--
 function initializeItemTooltips()
-    for i, v in pairs(tooltips) do
+   for i, v in pairs(tooltips) do
         v:HookScript("OnTooltipSetItem", function(tooltip)
             addSubName(tooltip);
             addTertiaryStats(tooltip)
@@ -97,3 +100,5 @@ function initializeItemTooltips()
     end
     PushForgeMessage(ForgeTopic.GET_TOOLTIPS, "1")
 end
+
+

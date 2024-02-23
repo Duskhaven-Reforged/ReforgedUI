@@ -16,10 +16,10 @@ Components\TalentTree\Microbar.lua
 
 Components\Tooltips\items.lua
 
-Components\AllStats\CustomPanel.lua
-Components\AllStats\FrameCreation.lua
-Components\AllStats\FunctionOverrides.lua
-Components\AllStats\Initialize.lua
+#Components\AllStats\CustomPanel.lua
+#Components\AllStats\FrameCreation.lua
+#Components\AllStats\FunctionOverrides.lua
+#Components\AllStats\Initialize.lua
 
 Components\Transmog\Constants.lua
 Components\Transmog\Transmog.lua

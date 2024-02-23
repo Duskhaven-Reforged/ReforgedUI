@@ -1413,7 +1413,7 @@ end)
             local _, _, texturePath2 = GetSpellInfo(spellId2)
 
             if not texturePath1 or not texturePath2 then
-                print("Erro: Uma das texturas não foi encontrada.")
+                print("Error: One of the textures was not encountered!")
                 return
             end
 

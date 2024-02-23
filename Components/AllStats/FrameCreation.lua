@@ -47,6 +47,8 @@ AllStatsFrame:SetScript("OnEvent", function(self, event, ...)
     end
 end)
 
+--AllStatsFrame:Hide()
+
 local AllStatsFrameBG = CreateFrame("Frame", "AllStatsFrameBG", AllStatsFrame)
 AllStatsFrameBG:SetSize(AllStatsFrame:GetWidth(), AllStatsFrame:GetHeight() + 15)
 AllStatsFrameBG:SetPoint("CENTER", AllStatsFrame, "CENTER")

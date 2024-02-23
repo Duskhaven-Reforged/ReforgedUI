@@ -29,10 +29,10 @@ affixTT = CreateFrame("GameTooltip", "affixTT", UIParent, "GameTooltipTemplate")
 function createKeySetupWindow()
     PushForgeMessage(ForgeTopic.MYTHIC_GET_AFFIXES_LIST, "0");
 
-    KeySetupWindow = CreateFrame("Frame", nil, KeySetupWindow);
+    KeySetupWindow = CreateFrame("Frame", "KeySetupWindow", KeySetupWindow);
     KeySetupWindow:SetSize(keysetupsettings.width, keysetupsettings.height); --- LEFT/RIGHT -- --UP/DOWN --
     KeySetupWindow:SetPoint("TOPLEFT", GetScreenWidth() / 20, -GetScreenHeight() / 10); --- LEFT/RIGHT -- --UP/DOWN --
-    KeySetupWindow:SetFrameStrata("DIALOG")
+    KeySetupWindow:SetFrameStrata("LOW")
     KeySetupWindow:EnableMouse(true)
     KeySetupWindow:SetMovable(true)
     KeySetupWindow:SetFrameLevel(1)
@@ -45,7 +45,7 @@ function createKeySetupWindow()
     end)
     KeySetupWindow:Hide()
 
-    KeySetupWindow.header = CreateFrame("BUTTON", nil, KeySetupWindow)
+    KeySetupWindow.header = CreateFrame("BUTTON", "KeySetupWindow.header", KeySetupWindow)
     KeySetupWindow.header:SetSize(keysetupsettings.width, tmogsettings.headerheight)
     KeySetupWindow.header:SetPoint("TOP", 0, 0);
     KeySetupWindow.header:SetFrameLevel(4)
