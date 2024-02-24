@@ -22,7 +22,7 @@ CURRENT_AFFIXES = {}
 CURRENT_TIMER = 0
 DEATHCOUNT = 0
 
-COMPLETE = false
+DG_COMPLETE = false
 
 affixTT = CreateFrame("GameTooltip", "affixTT", UIParent, "GameTooltipTemplate");
 
@@ -349,7 +349,7 @@ end);
 SubscribeToForgeTopic(ForgeTopic.MYTHIC_SET_AFFIXES_AND_START, function(msg)
     --print(msg)
     local split = ForgeSplit("*", msg);
-    COMPLETE = false
+    DG_COMPLETE = false
     KEYINFO.NAME = split[1];
     KEYINFO.LVL = tonumber(split[2]);
     KEYINFO.TIMER = tonumber(split[3])
@@ -389,7 +389,7 @@ SubscribeToForgeTopic(ForgeTopic.MYTHIC_UPDATE_TIMER, function(msg)
     CURRENT_TIMER = tonumber(msg);
     local t = 1
     KeyProgress:SetScript("OnUpdate", function(self, elapsed) 
-        if not COMPLETE then
+        if not DG_COMPLETE then
             t = t - elapsed
             if t <= 0 then
                 KeyProgress.timer:SetText(SecondsToClock(CURRENT_TIMER).."/"..SecondsToClock(KEYINFO.TIMER))
@@ -400,9 +400,9 @@ SubscribeToForgeTopic(ForgeTopic.MYTHIC_UPDATE_TIMER, function(msg)
     end)
 end);
 
-SubscribeToForgeTopic(ForgeTopic.MYTHIC_KEY_COMPLETED, function(msg)
-    COMPLETE = true
+SubscribeToForgeTopic(ForgeTopic.MYTHIC_KEY_DG_COMPLETED, function(msg)
+    DG_COMPLETE = true
     KeyProgress:SetScript("OnUpdate", function(self, elapsed) end) -- kill script for count down
-    KeyProgress.objectives:SetText("Complete!");
+    KeyProgress.objectives:SetText("DG_COMPLETE!");
     KeyProgress.objectives:SetTextColor(0 / 255, 255 / 255, 0 / 255, 1);
 end);

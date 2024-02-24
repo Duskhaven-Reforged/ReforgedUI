@@ -2,6 +2,7 @@ SpellBookFrame:HookScript("OnShow", function()
     HideMainWindow();
 end)
 
+
 QuestLogFrame:HookScript("OnShow", function()
     HideMainWindow();
 end)

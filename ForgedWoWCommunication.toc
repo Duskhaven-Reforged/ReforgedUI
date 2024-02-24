@@ -25,7 +25,7 @@ Components\Transmog\Constants.lua
 Components\Transmog\Transmog.lua
 Components\Transmog\Initialize.lua
 
-Components\Instance\Keystone.lua
+Components\Instance\Keystone.lua -- Here
 Components\Instance\Initialize.lua
 
 # Core Code
