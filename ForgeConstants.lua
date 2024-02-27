@@ -124,6 +124,14 @@ ForgeTopic = {
     GET_LOADOUTS                    = 121,
     SAVE_LOADOUT                    = 122,
     DELETE_LOADOUT                  = 123,
+
+    GET_SOULSHARDS                  = 130,
+    SET_SOULSHARDS                  = 131,
+    ACTIVE_SOULSHARDS               = 132,
+
+    SEND_MAX_WORLD_TIER             = 140,
+    SHOW_WORLD_TIER_SELECT          = 141,
+    SET_WORLD_TIER                  = 142,
 }
 
 -- These are the object definitions. Keyed by the same forge topic key.
@@ -702,6 +710,36 @@ DeserializerDefinitions = {
             }}
         }
     },
+    GET_SOULSHARDS = {
+        OBJECT = "~",
+        FIELDS = {
+            DELIMITER = "&",
+            FIELDS = {{
+                NAME = "source",
+                TYPE = FieldType.NUMBER
+            }, {
+                NAME = "name",
+            }, {
+                NAME = "rank",
+                TYPE = FieldType.NUMBER
+            }, {
+                NAME = "count",
+                TYPE = FieldType.NUMBER
+            }, {
+                NAME = "quality",
+                TYPE = FieldType.NUMBER
+            }, {
+                NAME = "special",
+                TYPE = FieldType.NUMBER
+            }, {
+                NAME = "groups",
+                OBJECT = "$",
+            }}
+        }
+    },
+    ACTIVE_SOULSHARDS = {
+        OBJECT = "~",
+    }
 }
 
 function GetSpecID()
@@ -724,4 +762,74 @@ function SetTemplate(frame)
     });
     frame:SetBackdropColor(0, 0, 0, 1);
     frame:SetAlpha(.75);
+end
+
+function CreateEchosButton(id, parent, x, y, text, textsize)
+    local b = CreateFrame("BUTTON", id, parent)
+    b:SetSize(x, y);
+    b:SetBackdrop({
+        bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
+        insets = {top = 0, left = 0, bottom = 0, right = 0},
+    });
+    b:SetBackdropColor(1,1,1,0)
+    b:SetAlpha(1)
+    b:EnableMouse()
+
+    b.title = b:CreateFontString("OVERLAY");
+    b.title:SetPoint("CENTER");
+    b.title:SetFont("Fonts\\FRIZQT__.TTF", textsize);
+    b.title:SetText(text)
+    b.title:SetTextColor(188 / 255, 150 / 255, 28 / 255, 1);
+
+    b:SetScript("OnEnter", function()
+        b.title:SetTextColor(255 / 255, 255 / 255, 255 / 255, 1)
+    end)
+
+    return b
+end
+
+function EchosCheckBox(id, parent, text, textsize, var)
+    local frame = CreateFrame("FRAME", id, parent)
+    frame:SetSize(parent:GetWidth(), parent:GetHeight()/2)
+    frame:SetPoint("TOP", 0, 0)
+
+    local text = frame:CreateFontString()
+    text:SetFont("Fonts\\FRIZQT__.TTF", 7)
+    text:SetTextColor(255 / 255, 255 / 255, 255 / 255, 1);
+    text:SetJustifyV("CENTER")
+    text:SetText("\124cffBC961CPrestige?\124r")
+    local strwidth = text:GetStringWidth()
+
+    local button = CreateFrame("Button", id.."Check", frame)
+    button:SetSize(parent:GetHeight()/4, parent:GetHeight()/4)
+    button:SetBackdrop({
+        bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
+        insets = {top = 0, left = 0, bottom = 0, right = 0},
+        edgeFile = "Interface\\ChatFrame\\ChatFrameBackground",
+        tileEdge = false,
+        edgeSize = .5
+    })
+    button:SetHighlightTexture("Interface\\Buttons\\CheckButtonHilight")
+    button:SetBackdropBorderColor(188 / 255, 150 / 255, 28 / 255, 1)
+
+    local totalWidth = strwidth + button:GetWidth()
+    local offset = (parent:GetWidth() - totalWidth)/2
+    button:SetPoint("LEFT", offset, button:GetHeight())
+    text:SetPoint("LEFT", offset+1+button:GetWidth(), button:GetHeight())
+
+    CheckEchosButton(button, var)
+
+    
+    print(totalWidth)
+
+    frame.button = button
+    return frame
+end
+
+function CheckEchosButton(button, var)
+    if var < 1 then
+        button:SetBackdropColor(0 / 255, 0 / 255, 0 / 255, 0)
+    else
+        button:SetBackdropColor(188 / 255, 150 / 255, 28 / 255, .9)
+    end
 end

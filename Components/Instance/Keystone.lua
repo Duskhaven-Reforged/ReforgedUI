@@ -6,7 +6,7 @@ KEYINFO = {
     AFFIXES = 1,
 }
 
-BASE = {
+INSTANCE = {
     AFFIXES = {},
     TIMER = 1800
 }
@@ -232,7 +232,7 @@ local function initAffixIconsForTier(tray, affixlist, iconSize, target)
 
         affix:SetScript("OnClick", function()
             CURRENT_AFFIXES[tray.tier] = affix.spell
-            KEYINFO.TIMER = BASE.TIMER + #CURRENT_AFFIXES*300
+            KEYINFO.TIMER = INSTANCE.TIMER + #CURRENT_AFFIXES*300
             affixTT:Hide()
             tray:Hide()
             target.tex:SetTexture(icon)
@@ -243,7 +243,7 @@ local function initAffixIconsForTier(tray, affixlist, iconSize, target)
 end
 
 local function CreateAffixSelectTile(tier, of)
-    local affixlist = BASE.AFFIXES[tier];
+    local affixlist = INSTANCE.AFFIXES[tier];
     local iconSize = KeySetupWindow:GetWidth()/7
     local _, _, placeholder = GetSpellInfo(1);
 
@@ -331,7 +331,7 @@ SubscribeToForgeTopic(ForgeTopic.MYTHIC_OPEN_WINDOW, function(msg)
     else
         local split = ForgeSplit(";", msg);
         KEYINFO.LVL = split[1]
-        KEYINFO.NAME = split[2] -- todo pull base timer
+        KEYINFO.NAME = split[2] -- todo pull INSTANCE timer
         CURRENT_AFFIXES = {}
         KEYINFO.AFFIXES = 1
 
@@ -360,23 +360,23 @@ end);
 SubscribeToForgeTopic(ForgeTopic.MYTHIC_GET_AFFIXES_LIST, function(msg)
     --print(msg)
     for i, entry in ipairs(DeserializeMessage(DeserializerDefinitions.GET_AFFIXES, msg)) do
-        BASE.AFFIXES[i] = {}
-        table.insert(BASE.AFFIXES[i], entry.SpellId)
+        INSTANCE.AFFIXES[i] = {}
+        table.insert(INSTANCE.AFFIXES[i], entry.SpellId)
     end
 end);
 
 SubscribeToForgeTopic(ForgeTopic.MYTHIC_UPDATE_CRITERIA, function(msg)
     --print(msg)
     local minionStr = "Minions: "
-    local baseStr = ""
+    local INSTANCEStr = ""
     for i, entry in ipairs(DeserializeMessage(DeserializerDefinitions.GET_MYTHIC_OBJS, msg)) do
         if entry.ID == "0" then
             minionStr = minionStr..entry.count.."%"
         else
-            baseStr = baseStr..entry.count.."/1 "..tostring(entry.ID).."\n"
+            INSTANCEStr = INSTANCEStr..entry.count.."/1 "..tostring(entry.ID).."\n"
         end
     end
-    KeyProgress.objectives:SetText(baseStr..minionStr);
+    KeyProgress.objectives:SetText(INSTANCEStr..minionStr);
 end);
 
 SubscribeToForgeTopic(ForgeTopic.MYTHIC_UPDATE_DEATHS, function(msg)

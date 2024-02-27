@@ -2,6 +2,21 @@ function InitializePerkExplorer()
     if (PerkExplorer) then
         return
     end
+    local perkBtnWidth = PaperDollFrame:GetWidth()/5
+    local perkBtnHeight = perkBtnWidth/5
+    PerkExplorerButton = CreateFrame("Button", "PerkExplorerButton", PaperDollFrame)
+    PerkExplorerButton = CreateEchosButton(PerkExplorerButton, PaperDollFrame, perkBtnWidth, perkBtnHeight, "Show Perks", 12)
+    PerkExplorerButton:SetPoint("TOPLEFT", perkBtnWidth/4, -perkBtnHeight)
+    PerkExplorerButton:SetScript("OnLeave", function()
+        if not PerkExplorer.body:IsVisible() then
+            PerkExplorerButton.title:SetTextColor(188 / 255, 150 / 255, 28 / 255, 1)
+        else
+            PerkExplorerButton.title:SetTextColor(255 / 255, 255 / 255, 255 / 255, 1)
+        end
+    end)
+    PerkExplorerButton:SetScript("OnClick", function() 
+        ToggleBox(PerkExplorer.body:IsVisible())
+    end)
 
     PerkExplorer = CreateFrame("FRAME", "PerkExplorer", UIParent);
     PerkExplorer:SetSize(settings.width / 3, 30);
@@ -292,15 +307,10 @@ end
 
 function ToggleBox(visible)
     if (visible) then
-        PerkExplorer.body:Hide();
-        PerkExplorer.header:SetSize(settings.width / 3, 30)
-        PerkExplorer.header.close:SetNormalTexture(assets.maximize)
-        PerkExplorer.header.close:SetPushedTexture(assets.maxPushed)
+        PerkExplorerButton.title:SetTextColor(188 / 255, 150 / 255, 28 / 255, 1)
+        PerkExplorer:Hide();
     else
-        PerkExplorer.header:SetSize(settings.width, 30)
-        PerkExplorer.body:Show(settings.width, 30);
-        PerkExplorer.header.close:SetNormalTexture(assets.minimize)
-        PerkExplorer.header.close:SetPushedTexture(assets.minPushed)
+        PerkExplorer:Show();
     end
 end
 

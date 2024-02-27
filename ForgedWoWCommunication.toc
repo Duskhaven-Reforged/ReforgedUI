@@ -9,17 +9,12 @@ PowerType.lua
 
 Components\Tooltips\items.lua
 
+Components\Perks\Initialize.lua
 Components\Perks\Constants.lua
 Components\Perks\SharedFunctions.lua
 Components\Perks\Explorer.lua
 Components\Perks\Selection.lua
 Components\Perks\Inspect.lua
-Components\Perks\Initialize.lua
-
-Components\AllStats\CustomPanel.lua
-Components\AllStats\FrameCreation.lua
-Components\AllStats\FunctionOverrides.lua
-Components\AllStats\Initialize.lua
 
 Components\Transmog\Constants.lua
 Components\Transmog\Transmog.lua
@@ -27,6 +22,16 @@ Components\Transmog\Initialize.lua
 
 Components\Instance\Keystone.lua
 Components\Instance\Initialize.lua
+
+Components\WorldTier\Initialize.lua
+Components\WorldTier\WorldTier.lua
+
+Components\AllStats\CustomPanel.lua
+Components\AllStats\FrameCreation.lua
+Components\AllStats\FunctionOverrides.lua
+Components\AllStats\Initialize.lua
+
+Components\SoulShard\Initialize.lua
 
 # Core Code
 Core\UIFixes.lua

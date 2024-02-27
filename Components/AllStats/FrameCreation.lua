@@ -29,7 +29,7 @@ end)
 AllStatsFrame:SetScript("OnShow", function(self)
     PrintStats();
     CharacterAttributesFrame:Hide()
-    CharacterModelFrame:SetHeight(300);
+    CharacterModelFrame:SetHeight(280);
 end)
 AllStatsFrame:RegisterEvent("UNIT_AURA")
 AllStatsFrame:RegisterEvent("UNIT_DAMAGE")

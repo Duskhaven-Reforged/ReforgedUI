@@ -86,7 +86,6 @@ function showPerkSelections(perks)
     -- end
 
     for index, perk in ipairs(perks) do
-        print(index .. " " .. perk.SpellId)
         AddSelectCard(perk.SpellId, index, perk.carryover, xPositions[#perks][index]);
     end
     TogglePerkSelectionFrame(true);

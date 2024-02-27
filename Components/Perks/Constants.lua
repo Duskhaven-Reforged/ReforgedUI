@@ -6,6 +6,7 @@ settings = {
     width = GetScreenWidth() / 2.18,
     height = GetScreenHeight() / 1.4,
     tabCount = 2,
+    header = 30
 }
 
 assets = {
