@@ -201,7 +201,12 @@ function LoadTalentString(msg)
             TreeCache.TotalInvests[i] = 0
         end
 
-        SelectTab(TalentTree.FORGE_TABS[spec])
+        for i = 1, #TalentTree.FORGE_TABS, 1 do
+            local id = TalentTree.FORGE_TABS[i].Id
+            if (tonumber(id) == spec) then
+                SelectTab(TalentTree.FORGE_TABS[i])
+            end
+        end
 
         local nodeInd = 1
         local classBlock = 3 + classTreeLen
