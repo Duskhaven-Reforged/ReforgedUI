@@ -26,6 +26,9 @@ Components\Instance\Initialize.lua
 Components\WorldTier\Initialize.lua
 Components\WorldTier\WorldTier.lua
 
+Components\Portalmaster\Initialize.lua
+Components\Portalmaster\Portalmaster.lua
+
 Components\AllStats\CustomPanel.lua
 Components\AllStats\FrameCreation.lua
 Components\AllStats\FunctionOverrides.lua
