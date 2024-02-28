@@ -22,7 +22,11 @@ PORTALMASTER_STATE = {
             name = "Which",
             frame = nil,
             value = 0,
-            entries = {}
+            entries = {
+                [1] = {},
+                [2] = {},
+                [3] = {},
+            }
         },
         [3] = {
             name = "Tier",
