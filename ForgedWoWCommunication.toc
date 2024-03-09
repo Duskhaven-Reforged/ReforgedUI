@@ -20,9 +20,6 @@ Components\Transmog\Constants.lua
 Components\Transmog\Transmog.lua
 Components\Transmog\Initialize.lua
 
-Components\Instance\Keystone.lua
-Components\Instance\Initialize.lua
-
 Components\WorldTier\Initialize.lua
 Components\WorldTier\WorldTier.lua
 

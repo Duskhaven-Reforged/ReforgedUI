@@ -16,9 +16,15 @@ function InitializeSelectionWindow()
 
     PerkSelectionWindow.Title = PerkSelectionWindow:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
     PerkSelectionWindow.Title:SetPoint("CENTER", nil, "CENTER", 0, (GetScreenHeight() / 2) - 100);
-    PerkSelectionWindow.Title:SetFont("Fonts\\FRIZQT__.TTF", 72);
+    PerkSelectionWindow.Title:SetFont("Fonts\\FRIZQT__.TTF", 20);
     PerkSelectionWindow.Title:SetShadowOffset(1, -1);
     PerkSelectionWindow.Title:SetText("Select A Perk");
+
+    PerkSelectionWindow.devtext = PerkSelectionWindow:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+    PerkSelectionWindow.devtext:SetPoint("CENTER", nil, "CENTER", 0, (GetScreenHeight() / 2) - 120);
+    PerkSelectionWindow.devtext:SetFont("Fonts\\FRIZQT__.TTF", 10);
+    PerkSelectionWindow.devtext:SetShadowOffset(1, -1);
+    PerkSelectionWindow.devtext:SetText("Perks will be undergoing a large revamp in the coming weeks. \nPlease refrain from reporting bugged perks to staff.");
 
     PerkSelectionWindow.background = CreateFrame("Frame", nil, PerkSelectionWindow)
     PerkSelectionWindow.background:SetPoint("CENTER", PerkSelectionWindow.Title, "CENTER", 0, -50)

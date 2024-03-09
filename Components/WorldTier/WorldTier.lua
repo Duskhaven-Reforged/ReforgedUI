@@ -127,13 +127,14 @@ function createWorldTierSelectWindow()
         drawButtons()
         WorldTier.body.buttonBox.buttons[1]:GetScript("OnClick")(WorldTier.body.buttonBox.buttons[1], 'LeftButton');
 
-        Portalmaster.body.tierdd = CreateFrame("Frame", Portalmaster.body.tierdd, Portalmaster.body);
-        Portalmaster.body.tierdd:SetPoint("TOP", 0, -2.66*tmogsettings.headerheight);
-        Portalmaster.body.tierdd:SetSize(PORTALMASTER.width, tmogsettings.headerheight*1.33)
-        Portalmaster.body.tierdd.Id = 3
         for i = 1, BASE.UNLOCKED_MAX, 1 do
-            PORTALMASTER_STATE.selections[3].entries[i] = "World Tier "..i
+            PORTALMASTER_STATE.selections[2].entries[i] = "World Tier "..i
         end
+        if Portalmaster.body.tierdd.dd then
+            Portalmaster.body.tierdd.dd:Hide()
+            Portalmaster.body.tierdd.dd = nil
+        end
+
         Portalmaster.body.tierdd.dd = CreateEchosDropDown("typedd", Portalmaster.body.tierdd, "", Portalmaster.body.tierdd.Id)
         PORTALMASTER_STATE.redraw = true
     end);

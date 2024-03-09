@@ -1,34 +1,22 @@
 PORTALMASTER = {
-    width = GetScreenWidth() / 15,
-    height = tmogsettings.headerheight*5,
+    width = GetScreenWidth() / 10,
+    height = tmogsettings.headerheight*4,
     pad = GetScreenWidth() / 120
 }
 
 PORTALMASTER_STATE = {
+    activeNpc = 0,
     clicked = 1,
     redraw = false,
     selections = {
         [1] = {
-            name = "Type",
+            name = "Where",
             frame = nil,
             value = 0,
-            entries = {
-                [1] = "City",
-                [2] = "Raid",
-                [3] = "Dungeon",
-            }
+            entries = {},
+            index = {}
         },
         [2] = {
-            name = "Which",
-            frame = nil,
-            value = 0,
-            entries = {
-                [1] = {},
-                [2] = {},
-                [3] = {},
-            }
-        },
-        [3] = {
             name = "Tier",
             frame = nil,
             value = 0,
@@ -97,56 +85,73 @@ function createPortalmasterSelectWindow()
     Portalmaster.body.Go:SetScript("OnLeave", function() 
         Portalmaster.body.Go.title:SetTextColor(188 / 255, 150 / 255, 28 / 255, 1)
     end)
-
-    Portalmaster.body.typedd = CreateFrame("Frame", Portalmaster.body.typedd, Portalmaster.body);
-    Portalmaster.body.typedd:SetPoint("TOP", 0, 0);
-    Portalmaster.body.typedd:SetSize(PORTALMASTER.width, tmogsettings.headerheight*1.33)
-    Portalmaster.body.typedd.Id = 1
-    Portalmaster.body.typedd.dd = CreateEchosDropDown("typedd", Portalmaster.body.typedd, "", Portalmaster.body.typedd.Id)
+    Portalmaster.body.Go:SetScript("OnClick", function()
+        PushForgeMessage(ForgeTopic.SET_WORLD_TIER, PORTALMASTER_STATE.selections[2].value..";"..0)
+        local struct = PORTALMASTER_STATE.selections[1].index[PORTALMASTER_STATE.selections[1].value]
+        local msg = struct.id..";"..struct.map
+        PushForgeMessage(ForgeTopic.TAKE_PORTAL_TO, msg)
+    end)
 
     Portalmaster.body.zonedd = CreateFrame("Frame", Portalmaster.body.zonedd, Portalmaster.body);
-    Portalmaster.body.zonedd:SetPoint("TOP", 0, -tmogsettings.headerheight*1.33);
+    Portalmaster.body.zonedd:SetPoint("TOP", 0, 0);
     Portalmaster.body.zonedd:SetSize(PORTALMASTER.width, tmogsettings.headerheight*1.33)
-    Portalmaster.body.zonedd.Id = 2
-    Portalmaster.body.zonedd.dd = CreateEchosDropDown("typedd", Portalmaster.body.zonedd, "", Portalmaster.body.zonedd.Id)
-    PORTALMASTER_STATE.redraw = true
+    Portalmaster.body.zonedd.Id = 1
+
+    Portalmaster.body.tierdd = CreateFrame("Frame", Portalmaster.body.tierdd, Portalmaster.body);
+    Portalmaster.body.tierdd:SetPoint("TOP", 0, -1.33*tmogsettings.headerheight);
+    Portalmaster.body.tierdd:SetSize(PORTALMASTER.width, tmogsettings.headerheight*1.33)
+    Portalmaster.body.tierdd.Id = 2
+
+    PORTALMASTER_STATE.redraw = false
 
     SubscribeToForgeTopic(ForgeTopic.SHOW_PORTAL_MASTER_SELECT, function(msg)
         if msg == "0" then
             Portalmaster:Hide()
         else
-            Portalmaster:Show()
+            PORTALMASTER_STATE.activeNpc = msg
+            PushForgeMessage(ForgeTopic.SEND_PORTALS, msg)
         end
     end);
+
+    SubscribeToForgeTopic(ForgeTopic.SEND_PORTALS, function(msg) 
+        local listOfObjects = DeserializeMessage(DeserializerDefinitions.GET_PORTALS, msg);
+        PORTALMASTER_STATE.selections[1].entries = {}
+        for i, obj in ipairs(listOfObjects) do
+            PORTALMASTER_STATE.selections[1].entries[i] = obj.mapName;
+            PORTALMASTER_STATE.selections[1].index[i] = {
+                id = obj.id,
+                map = obj.map,
+                mapName = obj.mapName,
+            }
+        end
+        if Portalmaster.body.zonedd.dd then
+            Portalmaster.body.zonedd.dd:Hide()
+            Portalmaster.body.zonedd.dd = nil
+        end
+        Portalmaster.body.zonedd.dd = CreateEchosDropDown("typedd", Portalmaster.body.zonedd, "Where", Portalmaster.body.zonedd.Id)
+        Portalmaster:Show()
+        PORTALMASTER_STATE.redraw = true
+    end)
 
     Portalmaster:SetScript("OnUpdate", function() 
         if PORTALMASTER_STATE.redraw then
             for i, val in ipairs(PORTALMASTER_STATE.selections) do
-                if PORTALMASTER_STATE.clicked ~= i then
-                    val.frame.bin:Hide();
-                end
-
-                if val.value == 0 then
-                    val.frame.text:SetText(val.name)
-                else
-                    val.frame.text:SetText(val.entries[val.value])
+                if val.frame then
+                    if PORTALMASTER_STATE.clicked ~= i then
+                        val.frame.bin:Hide();
+                    end
+                    if val.value == 0 then
+                        val.frame.text:SetText(val.name)
+                    else
+                        val.frame.text:SetText(val.entries[val.value])
+                    end
                 end
             end
             PORTALMASTER_STATE.redraw = false
         end
     end)
 
-    SubscribeToForgeTopic(ForgeTopic.SEND_ZONES_FOR_TP, function(msg)
-        Portalmaster.body.tierdd = CreateFrame("Frame", Portalmaster.body.tierdd, Portalmaster.body);
-        Portalmaster.body.tierdd:SetPoint("TOP", 0, -2.66*tmogsettings.headerheight);
-        Portalmaster.body.tierdd:SetSize(PORTALMASTER.width, tmogsettings.headerheight*1.33)
-        Portalmaster.body.tierdd.Id = 3
-        for i = 1, BASE.UNLOCKED_MAX, 1 do
-            PORTALMASTER_STATE.selections[2].entries[i] = "World Tier "..i
-        end
-        Portalmaster.body.tierdd.dd = CreateEchosDropDown("typedd", Portalmaster.body.tierdd, "", Portalmaster.body.tierdd.Id)
-        PORTALMASTER_STATE.redraw = true
-    end);
+
 end
 
 function CreateEchosDropDown(name, parent, textstr, id)
@@ -159,7 +164,7 @@ function CreateEchosDropDown(name, parent, textstr, id)
     }
     local frame = CreateFrame("Button", name, parent)
     frame:SetPoint("CENTER")
-    frame:SetSize(parent:GetWidth()*2/3, parent:GetHeight()*2/3)
+    frame:SetSize(parent:GetWidth()*.8, parent:GetHeight()*2/3)
     frame:SetHighlightTexture([[Interface\QuestFrame\UI-QuestTitleHighlight]], "ADD")
     frame:SetBackdrop(backdrop)
     frame:SetBackdropColor(0,0,0,.75)

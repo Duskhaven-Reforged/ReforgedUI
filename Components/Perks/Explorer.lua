@@ -386,6 +386,7 @@ function LoadCurrentPerks(spec)
         for spellId, meta in pairs(PerkExplorerInternal.PERKS_SPEC[specId]) do
             local name, _, icon = GetSpellInfo(spellId);
             local rank = meta[1].rank;
+            print(rank)
             local current = PerkExplorer.body.perkbox.yourPerks.perks[i]
             current.Texture:SetTexture(icon);
             SetRankTexture(current, rank)

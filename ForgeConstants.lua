@@ -132,8 +132,10 @@ ForgeTopic = {
     SEND_MAX_WORLD_TIER             = 140,
     SHOW_WORLD_TIER_SELECT          = 141,
     SET_WORLD_TIER                  = 142,
-    SHOW_PORTAL_MASTER_SELECT       = 143,
-    TAKE_PORTAL_TO                  = 144,
+
+    SEND_PORTALS                    = 150,
+    SHOW_PORTAL_MASTER_SELECT       = 151,
+    TAKE_PORTAL_TO                  = 152,
 }
 
 -- These are the object definitions. Keyed by the same forge topic key.
@@ -739,9 +741,24 @@ DeserializerDefinitions = {
             }}
         }
     },
+    GET_PORTALS = {
+        OBJECT = "*",
+        FIELDS = {
+            DELIMITER = ";",
+            FIELDS = {{
+                NAME = "id",
+                TYPE = FieldType.NUMBER
+            }, {
+                NAME = "map",
+                TYPE = FieldType.NUMBER
+            }, {
+                NAME = "mapName",
+            }
+        }}
+    },
     ACTIVE_SOULSHARDS = {
         OBJECT = "~",
-    }
+    },
 }
 
 function GetSpecID()
